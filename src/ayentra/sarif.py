@@ -92,23 +92,7 @@ def to_sarif(
                 },
             }
 
-            if patch and getattr(patch, "unified_diff", "").strip():
-                res_obj["fixes"] = [
-                    {
-                        "description": {
-                            "text": f"Apply verified fix for {violation.failing_target}",
-                        },
-                        "artifactChanges": [
-                            {
-                                "artifactLocation": {
-                                    "uri": rel_uri,
-                                    "uriBaseId": "%SRCROOT%",
-                                },
-                                "replacements": [],
-                            }
-                        ],
-                    }
-                ]
+
 
             sarif_results.append(res_obj)
 
