@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ayentra | Catch Python Edge Cases Before Merge</title>
-  <meta name="description" content="Write one rule your Python code must never break. Ayentra automatically finds the exact input that breaks it, shrinks the bug to a 2-line reproduction, and tests the fix in a safe sandbox before you merge.">
-  <link rel="canonical" href="https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site/">
-  <meta property="og:title" content="Ayentra | Catch Python Edge Cases Before Merge">
-  <meta property="og:description" content="Write one rule your Python code must never break. Ayentra finds the breaking input, shrinks it to 2 lines, and tests a safe fix before merge.">
+  <title>Ayentra | Catch Backend Edge Cases & Concurrency Races Before Merge</title>
+  <meta name="description" content="Write one rule your backend code must never break. Ayentra automatically finds the exact input that breaks it, shrinks the bug to a 2-line reproduction, and tests the fix in a safe sandbox before you merge.">
+  <link rel="canonical" href="https://ayentra-ai.vercel.app/">
+  <meta property="og:title" content="Ayentra | Catch Backend Edge Cases & Concurrency Races Before Merge">
+  <meta property="og:description" content="Write one rule your backend code must never break. Ayentra finds the breaking input, shrinks it to 2 lines, and tests a safe fix before merge.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site/">
-  <meta property="og:image" content="https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site/og-image.png">
+  <meta property="og:url" content="https://ayentra-ai.vercel.app/">
+  <meta property="og:image" content="https://ayentra-ai.vercel.app/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Ayentra | Catch Python Edge Cases Before Merge">
-  <meta name="twitter:description" content="Catch Python edge cases and thread races before merge with 2-line minimal counterexamples.">
+  <meta name="twitter:title" content="Ayentra | Catch Backend Edge Cases & Concurrency Races Before Merge">
+  <meta name="twitter:description" content="Catch backend edge cases and concurrency race conditions before merge with 2-line minimal counterexamples.">
   <link rel="stylesheet" href="styles.css">
   <script type="application/ld+json">
   {
@@ -22,7 +22,7 @@
     "name": "Ayentra",
     "operatingSystem": "Cross-platform",
     "applicationCategory": "DeveloperApplication",
-    "description": "Invariant-aware bug finding and safe sandbox fixes for Python CI pipelines.",
+    "description": "Invariant-aware bug finding and safe sandbox fixes for distributed backends, microservices, and CI pipelines.",
     "softwareVersion": "0.1.0",
     "offers": {
       "@type": "Offer",
@@ -46,13 +46,14 @@
           <li><a href="#demo" class="nav-link">Interactive Demo</a></li>
           <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
           <li><a href="#quickstart" class="nav-link">Quickstart &amp; CLI</a></li>
+          <li><a href="#pricing" class="nav-link">Pricing</a></li>
           <li><a href="#benchmark" class="nav-link">Benchmarks</a></li>
           <li><a href="#sbom" class="nav-link">SBOM &amp; Security</a></li>
         </ul>
       </nav>
 
       <div class="nav-actions">
-        <button type="button" class="btn-primary" onclick="openLegalModal('pilot')">Enterprise Pilot</button>
+        <button type="button" class="btn-primary" onclick="openLegalModal('pilot')">View Pricing</button>
       </div>
     </div>
   </header>
@@ -65,7 +66,7 @@
     </h1>
 
     <p class="hero-subtitle">
-      Write one rule your Python code must never break. Ayentra automatically finds the exact input that breaks it, shrinks the bug to a 2-line reproduction, and tests the fix in a safe sandbox before you merge.
+      Write one rule your backend code must never break. Ayentra automatically finds the exact input that breaks it, shrinks the bug to a 2-line reproduction, and tests the fix in a safe sandbox before you merge.
     </p>
 
     <div class="hero-cta-group">
@@ -108,7 +109,7 @@
       <div class="section-badge">Interactive Live Demo</div>
       <h2 class="section-title">Watch Ayentra Catch and Fix Real Bugs</h2>
       <p class="section-desc">
-        Pick a real Python bug below and click Run Check to see how Ayentra finds the exact failing input and tests a safe fix.
+        Pick a real backend bug scenario below and click Run Check to see how Ayentra finds the exact failing input and tests a safe fix.
       </p>
     </div>
 
@@ -173,7 +174,7 @@
               <span class="pane-file-title" id="pane-file-name">examples/scheduler_race.py</span>
               <span class="pane-tag tag-contract" id="pane-tag">Thread Safety Rule</span>
             </div>
-            <span style="font-size: 12px; color: var(--text-muted);">Python 3.10+</span>
+            <span style="font-size: 12px; color: var(--text-muted);">Universal Backend (Python, TS, Go)</span>
           </div>
 
           <div class="editor-wrapper">
@@ -283,7 +284,7 @@ ledger.reserve(units=<span class="num">-1</span>)
           <div class="step-num">Step 01</div>
           <h3 class="step-name">Write One Rule</h3>
           <p class="step-text">
-            Add an <code>@invariant</code> decorator in Python or a rule in <code>ayentra.toml</code> stating what must always stay true.
+            Add an <code>@invariant</code> decorator or contract declaration in <code>ayentra.toml</code> stating what must always stay true across your backend.
           </p>
         </div>
 
@@ -291,7 +292,7 @@ ledger.reserve(units=<span class="num">-1</span>)
           <div class="step-num">Step 02</div>
           <h3 class="step-name">Auto-Generate Inputs</h3>
           <p class="step-text">
-            Ayentra reads your Python type hints (ints, Decimals, dates, dataclasses) and generates realistic edge-case inputs automatically.
+            Ayentra reads backend schema models and type contracts across Python, TypeScript, and Go to generate adversarial boundary cases automatically.
           </p>
         </div>
 
@@ -307,7 +308,7 @@ ledger.reserve(units=<span class="num">-1</span>)
           <div class="step-num">Step 04</div>
           <h3 class="step-name">Verify Fix in Sandbox</h3>
           <p class="step-text">
-            Ayentra generates a clean code patch and tests it in a temporary sandbox against both the bug and your existing pytest suite.
+            Ayentra generates a clean code patch and tests it in a temporary sandbox against both the bug and your existing backend test suite.
           </p>
         </div>
       </div>
@@ -431,7 +432,7 @@ ledger.reserve(units=<span class="num">-1</span>)
       - <span class="syn-key">name</span>: <span class="syn-str">Checkout code</span>
         <span class="syn-key">uses</span>: <span class="syn-str">actions/checkout@v4</span>
 
-      - <span class="syn-key">name</span>: <span class="syn-str">Set up Python</span>
+      - <span class="syn-key">name</span>: <span class="syn-str">Set up Runtime Environment</span>
         <span class="syn-key">uses</span>: <span class="syn-str">actions/setup-python@v5</span>
         <span class="syn-key">with</span>:
           <span class="syn-key">python-version</span>: <span class="syn-str">'3.11'</span>
@@ -592,7 +593,8 @@ ledger.reserve(units=<span class="num">-1</span>)
             <span class="term-out">$ </span><code class="term-cmd">ayentra init --ci</code>
           </div>
           <div class="term-line term-out">
-            Scanning repository structure... Detected Python package at src/<br>
+            Scanning repository structure... Detected backend services at src/<br>
+            Loaded invariant adapter: Python (Native), TypeScript &amp; Go (Preview)<br>
             Created contract configuration: ayentra.toml<br>
             Created GitHub Actions workflow: .github/workflows/ayentra.yml
           </div>
@@ -764,57 +766,89 @@ ledger.reserve(units=<span class="num">-1</span>)
   </section>
 
   <!-- Enterprise Pilot Section -->
-  <section class="cli-section" id="pilot" style="border-top: 1px solid var(--border-subtle);">
+  <!-- Pricing & Enterprise Pilot Section -->
+  <section class="cli-section" id="pricing" style="border-top: 1px solid var(--border-subtle);">
     <div class="section-header-centered">
-      <div class="section-badge">Enterprise Pilot</div>
-      <h2 class="section-title">Protect Your Codebase in 2 Commands</h2>
+      <div class="section-badge">Pricing &amp; Plans</div>
+      <h2 class="section-title">Transparent Subscriptions for Engineering Teams</h2>
       <p class="section-subtitle">
-        Set up automated bug checks and safe fixes in your CI pipeline with zero complex setup.
-        Full GitHub Actions workflow scaffolding, SARIF code scanning reports, and isolated sandbox patch testing.
+        Self-serve monthly plans backed by Lemon Squeezy Merchant of Record. Zero surprise fees, cancel anytime.
       </p>
     </div>
 
-    <div class="cards-grid-three">
-      <div class="difference-card">
-        <div class="metric-label">1. Quick CI Setup</div>
-        <h3 style="font-size: 16px; margin-bottom: 8px;">Two-Command Setup</h3>
-        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">
-          Install and enable automatic bug checks across your entire repository in two commands.
-        </p>
-        <div class="feature-code-snippet">pip install ayentra
-ayentra init --ci</div>
+    <!-- Pricing Cards Grid -->
+    <div class="cards-grid-three" style="margin-bottom: 24px;">
+      <!-- Developer Free -->
+      <div class="difference-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="metric-label">Open Core</div>
+          <h3 style="font-size: 20px; margin-bottom: 4px;">Developer</h3>
+          <div style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Free</div>
+          <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">
+            For individual engineers running local invariant checks and AST guard verification.
+          </p>
+          <ul style="list-style: none; padding: 0; margin: 0 0 20px 0; font-size: 13.5px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 8px;">
+            <li>✓ Local CLI verification</li>
+            <li>✓ Property strategy synthesis</li>
+            <li>✓ 100% offline, zero network calls</li>
+            <li>✓ Community invariant decorators</li>
+          </ul>
+        </div>
+        <div class="cli-badge-group" data-cmd="pip install ayentra" style="margin: 0; width: 100%; justify-content: center;">
+          <code class="cli-badge-code"><span>$ </span>pip install ayentra</code>
+        </div>
       </div>
 
-      <div class="difference-card">
-        <div class="metric-label">2. Security Scanning</div>
-        <h3 style="font-size: 16px; margin-bottom: 8px;">Standard Security Alerts</h3>
-        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">
-          Integrates directly with GitHub Code Scanning alerts, SonarQube, and CI dashboards.
-        </p>
-        <div class="feature-code-snippet">ayentra check . --ci --sarif report.sarif</div>
+      <!-- Ayentra Team ($249/mo) -->
+      <div class="difference-card" style="display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--border-default);">
+        <div>
+          <div class="metric-label" style="color: var(--accent-terracotta);">Team Tier</div>
+          <h3 style="font-size: 20px; margin-bottom: 4px;">Ayentra Team</h3>
+          <div style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">$249 <span style="font-size: 14px; font-weight: 400; color: var(--text-muted);">/ month</span></div>
+          <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">
+            Automated CI invariant verification and property shrinking for growing engineering teams.
+          </p>
+          <ul style="list-style: none; padding: 0; margin: 0 0 20px 0; font-size: 13.5px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 8px;">
+            <li>✓ Up to 1,000 CI verification runs / month</li>
+            <li>✓ GitHub Action CI integration</li>
+            <li>✓ OASIS SARIF 2.1.0 security exports</li>
+            <li>✓ PR review bot comments</li>
+          </ul>
+        </div>
+        <a href="https://ayentra.lemonsqueezy.com/checkout/buy/a58ed229-19a0-4023-b0ac-09b5d89fc511" target="_blank" rel="noopener noreferrer" class="btn-primary" style="width: 100%; text-align: center; justify-content: center; text-decoration: none;">Get Ayentra Team</a>
       </div>
 
-      <div class="difference-card">
-        <div class="metric-label">3. Automated Review</div>
-        <h3 style="font-size: 16px; margin-bottom: 8px;">Helpful PR Comments</h3>
-        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">
-          Posts clear GitHub pull request comments showing the exact bug reproduction and a tested fix.
-        </p>
-        <div class="feature-code-snippet">ayentra check --mock-pr-event</div>
+      <!-- Ayentra Scale ($999/mo) -->
+      <div class="difference-card" style="display: flex; flex-direction: column; justify-content: space-between; border: 2px solid var(--accent-terracotta);">
+        <div>
+          <div class="metric-label" style="color: var(--accent-terracotta);">Scale &amp; Pilot</div>
+          <h3 style="font-size: 20px; margin-bottom: 4px;">Ayentra Scale</h3>
+          <div style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">$999 <span style="font-size: 14px; font-weight: 400; color: var(--text-muted);">/ month</span></div>
+          <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">
+            Deep concurrency race detection, TOCTOU exploration, and isolated sandbox auto-repair.
+          </p>
+          <ul style="list-style: none; padding: 0; margin: 0 0 20px 0; font-size: 13.5px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 8px;">
+            <li>✓ Up to 5,000 CI verification runs / month</li>
+            <li>✓ Deterministic sys.settrace concurrency exploration</li>
+            <li>✓ 3-stage sandbox patch verification</li>
+            <li>✓ Priority engineering SLA &amp; 100% credited to annual contract</li>
+          </ul>
+        </div>
+        <a href="https://ayentra.lemonsqueezy.com/checkout/buy/075ff1d2-743c-4b16-85ea-995a77d8ed26" target="_blank" rel="noopener noreferrer" class="btn-primary" style="width: 100%; text-align: center; justify-content: center; text-decoration: none;">Get Ayentra Scale</a>
       </div>
     </div>
 
     <div class="data-table-card" style="padding: 20px 24px;">
       <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
         <div>
-          <h3 style="font-size: 16px; margin-bottom: 4px;">Real Production Example: Financial Ledger</h3>
+          <h3 style="font-size: 16px; margin-bottom: 4px;">Enterprise Dedicated ($2,500 to $5,000/mo)</h3>
           <p style="font-size: 14px; color: var(--text-secondary);">
-            See how Ayentra catches balance drift and race conditions in <code>examples/customer_pilot.py</code> and read the guide in <code>docs/design_partner_kit.md</code>.
+            Self-hosted runner integration, custom AST templates, unlimited repositories, and dedicated SLA. Inquiries: <a href="mailto:ayentra.ai@gmail.com" style="color: var(--accent-terracotta); font-weight: 700;">ayentra.ai@gmail.com</a>.
           </p>
         </div>
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
           <a href="#demo" class="btn-secondary">Explore Demo</a>
-          <a href="#studio" class="btn-primary">Launch Studio</a>
+          <button type="button" class="btn-primary" onclick="openLegalModal('pilot')">Plan Details</button>
         </div>
       </div>
     </div>
@@ -931,7 +965,7 @@ ayentra init --ci</div>
       <div class="section-badge">Speed &amp; Accuracy</div>
       <h2 class="section-title">Fixes in Under 3 Seconds</h2>
       <p class="section-subtitle">
-        Tested on 15 real-world Python targets. Every candidate fix is replayed against the bug, checked across hundreds of edge cases, and run through your full test suite in under 3 seconds on average.
+        Tested on 15 real-world backend targets across data pipelines, payment ledgers, and concurrency schedulers. Every candidate fix is replayed against the bug, checked across hundreds of edge cases, and run through your full test suite in under 3 seconds on average.
       </p>
     </div>
 
@@ -961,7 +995,7 @@ ayentra init --ci</div>
     <!-- 8 Safety Templates Supported Badge Bar -->
     <div class="data-table-card" style="padding: 16px 20px; margin-bottom: 24px;">
       <div class="metric-label" style="margin-bottom: 10px;">
-        8 Built-In Python Safety Templates
+        8 Built-In Backend Safety Templates (Universal Invariant Protocol)
       </div>
       <div style="display: flex; flex-wrap: wrap; gap: 8px;">
         <span class="ast-pill"><code>decimal_quantize</code> Decimal &amp; precision guard</span>
@@ -979,7 +1013,7 @@ ayentra init --ci</div>
     <div class="data-table-card" style="margin-bottom: 32px;">
       <div class="data-table-header">
         <strong style="font-size: 14px;">15 Real-World Target Benchmark Results</strong>
-        <span style="font-size: 12px; color: var(--accent-green); font-weight: 700;">Hardware: Python 3.14 (Windows amd64) | 100% Sandbox Pass</span>
+        <span style="font-size: 12px; color: var(--accent-green); font-weight: 700;">Engine Target: Python 3.14 (Windows amd64) | 100% Sandbox Pass</span>
       </div>
       <div class="table-scroll">
         <table class="data-table" aria-label="15-Target Repair Benchmark and Latency Matrix">
@@ -1406,7 +1440,7 @@ $ pip install dist/ayentra-0.1.0-py3-none-any.whl --no-index --find-links=dist/<
       <div style="display: flex; flex-direction: column; gap: 6px;">
         <div style="display: flex; align-items: center; gap: 12px;">
           <strong style="color: var(--text-primary); font-size: 14px;">Ayentra</strong>
-          <span>Catch Python edge cases before merge</span>
+          <span>Catch backend edge cases before merge</span>
         </div>
         <div style="font-size: 12px; color: var(--text-muted);">
           Contact: <a href="mailto:ayentra.ai@gmail.com" style="color: var(--accent-terracotta); text-decoration: none;">ayentra.ai@gmail.com</a>

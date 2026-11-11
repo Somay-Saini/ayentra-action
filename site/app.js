@@ -935,7 +935,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Runtime Environment
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -1121,16 +1121,37 @@ const MODAL_CONTENT = {
     `
   },
   pilot: {
-    title: "Enterprise Pilot and Early Access",
+    title: "Ayentra Pricing & Plans",
     body: `
-      <h4>Protect Your Codebase with Ayentra</h4>
-      <p>Get priority CI onboarding, custom AST safety templates, and GitHub Code Scanning SARIF integration.</p>
-      <div style="background: var(--bg-surface); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-default); margin: 14px 0;">
-        <p style="margin-bottom: 8px;"><strong>Two-Command Quickstart:</strong></p>
-        <code style="font-family: var(--font-mono); font-size: 13px; color: var(--accent-terracotta);">$ pip install ayentra && ayentra init --ci</code>
+      <h4>Production Backend Invariant Verification</h4>
+      <p style="margin-bottom: 14px;">Continuous invariant verification and deterministic sandbox repair across Python, TypeScript, Go, and Rust.</p>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+        <div style="background: var(--bg-surface); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-default); display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--accent-terracotta); letter-spacing: 0.05em;">Team Tier</div>
+            <h3 style="font-size: 18px; margin: 4px 0 8px 0;">Ayentra Team</h3>
+            <div style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">$249 <span style="font-size: 13px; font-weight: 400; color: var(--text-muted);">/ month</span></div>
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 12px;">Automated CI verification and property shrinking for backend engineering teams. 1,000 monthly test runs and SARIF security exports.</p>
+          </div>
+          <a href="https://ayentra.lemonsqueezy.com/checkout/buy/a58ed229-19a0-4023-b0ac-09b5d89fc511" target="_blank" rel="noopener noreferrer" class="btn-primary" style="text-align: center; justify-content: center; text-decoration: none; padding: 10px 14px; font-size: 13px;">Get Ayentra Team</a>
+        </div>
+
+        <div style="background: var(--bg-surface); padding: 16px; border-radius: var(--radius-sm); border: 2px solid var(--accent-terracotta); display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--accent-terracotta); letter-spacing: 0.05em;">Scale & Pilot</div>
+            <h3 style="font-size: 18px; margin: 4px 0 8px 0;">Ayentra Scale</h3>
+            <div style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">$999 <span style="font-size: 13px; font-weight: 400; color: var(--text-muted);">/ month</span></div>
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 12px;">Deep concurrency race detection and isolated sandbox repair. 5,000 monthly test runs and priority engineering support.</p>
+          </div>
+          <a href="https://ayentra.lemonsqueezy.com/checkout/buy/075ff1d2-743c-4b16-85ea-995a77d8ed26" target="_blank" rel="noopener noreferrer" class="btn-primary" style="text-align: center; justify-content: center; text-decoration: none; padding: 10px 14px; font-size: 13px;">Get Ayentra Scale</a>
+        </div>
       </div>
-      <p>For custom pilot setups or private CI integrations, email us at <a href="mailto:ayentra.ai@gmail.com" style="color: var(--accent-terracotta); font-weight: 700;">ayentra.ai@gmail.com</a>.</p>
-      <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Zero hidden fees. You can opt out or cancel any pilot inquiry at any time.</p>
+
+      <div style="background: var(--bg-surface); padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-default); margin-bottom: 12px;">
+        <p style="font-size: 13px; color: var(--text-secondary); margin: 0;"><strong>Enterprise Tier ($2,500 to $5,000/mo):</strong> Unlimited self-hosted runners, custom AST guard templates, and SLA. Contact us at <a href="mailto:ayentra.ai@gmail.com" style="color: var(--accent-terracotta); font-weight: 700;">ayentra.ai@gmail.com</a>.</p>
+      </div>
+      <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Payments processed securely via Lemon Squeezy. Zero hidden fees, cancel anytime.</p>
     `
   }
 };
