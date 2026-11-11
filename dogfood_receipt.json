@@ -1,0 +1,101 @@
+{
+  "timestamp": "2026-10-27T13:08:58.236370+00:00",
+  "total_patterns_scanned": 7,
+  "total_cases_evaluated": 173,
+  "violations_found": 7,
+  "verified_fixes_count": 7,
+  "duration_ms": 20044.52,
+  "findings": [
+    {
+      "pattern_name": "customer_pilot",
+      "filepath": "C:/Users/Somay/Desktop/idea1/examples/customer_pilot.py",
+      "plain_english_bug": "Method EnterprisePaymentLedger.hold_in_escrow failed on input {\"call_sequence\": [{\"method\": \"hold_in_escrow\", \"args\": {\"amount\": -1, \"tx_id\": \"a=nan\"}}]}: invariant 'self.available >= 0 and self.escrow >= 0 and self.available + self.escrow == self.total_funds' did not hold.",
+      "business_risk": "Critical risk: Financial balance corruption or negative ledger drift (direct monetary loss).",
+      "cases_evaluated": 69,
+      "counterexample_summary": "{\"call_sequence\": [{\"method\": \"hold_in_escrow\", \"args\": {\"amount\": -1, \"tx_id\": \"a=nan\"}}]}",
+      "fix_status": "VERIFIED CANDIDATE FIX",
+      "verified_fix_available": true,
+      "unified_diff": "--- a/customer_pilot.py\n+++ b/customer_pilot.py\n@@ -1,13 +1,8 @@\n from __future__ import annotations\n-\n from dataclasses import dataclass, field\n from ayentra.contracts import domain, invariant\n \n-\n-@invariant(\n-    \"self.available >= 0 and self.escrow >= 0 and self.available + self.escrow == self.total_funds\",\n-    description=\"Ledger conservation law: available and escrow funds must be non-negative and sum to total funds\",\n-)\n+@invariant('self.available >= 0 and self.escrow >= 0 and self.available + self.escrow == self.total_funds', description='Ledger conservation law: available and escrow funds must be non-negative and sum to total funds')\n @dataclass\n class EnterprisePaymentLedger:\n     total_funds: int = 1000\n@@ -17,19 +12,25 @@\n \n     @domain(amount=(-100, 2000), tx_id=('tx_1', 'tx_2', 'tx_3'))\n     def hold_in_escrow(self, amount: int, tx_id: str) -> bool:\n+        if amount <= 0:\n+            raise ValueError('amount must be positive')\n+        if amount > self.available:\n+            raise ValueError('Insufficient available for operation')\n         if tx_id in self.settled_tx_ids:\n             return True\n-        if amount <= self.available:\n-            self.available -= amount\n-            self.escrow += amount\n-            self.settled_tx_ids.add(tx_id)\n-            return True\n+        self.available -= amount\n+        self.escrow += amount\n+        self.settled_tx_ids.add(tx_id)\n+        return True\n         return False\n \n     @domain(amount=(-100, 2000))\n     def release_escrow(self, amount: int) -> bool:\n-        if amount <= self.escrow:\n-            self.escrow -= amount\n-            self.available += amount\n-            return True\n+        if amount <= 0:\n+            raise ValueError('amount must be positive')\n+        if amount > self.escrow:\n+            raise ValueError('Insufficient escrow for operation')\n+        self.escrow -= amount\n+        self.available += amount\n+        return True\n         return False\n",
+      "repro_command": "ayentra check C:/Users/Somay/Desktop/idea1/examples/customer_pilot.py --seed 42",
+      "one_click_fix_command": "ayentra apply-patch C:/Users/Somay/Desktop/idea1/examples/customer_pilot.py --yes"
+    },
+    {
+      "pattern_name": "data_parser",
+      "filepath": "C:/Users/Somay/Desktop/idea1/examples/data_parser.py",
+      "plain_english_bug": "Method parse_telemetry_payload failed on input {\"arguments\": {\"payload\": \"cpu=nan\"}}: invariant 'all(len(k.strip()) > 0 for k in result.keys()) and all(math.isfinite(v) for v in result.values())' did not hold.",
+      "business_risk": "Operational risk: Violated invariant 'all(len(k.strip()) > 0 for k in result.keys()) and all(math.isfinite(v) for v in result.values())' compromises data integrity.",
+      "cases_evaluated": 12,
+      "counterexample_summary": "{\"arguments\": {\"payload\": \"cpu=nan\"}}",
+      "fix_status": "VERIFIED CANDIDATE FIX",
+      "verified_fix_available": true,
+      "unified_diff": "--- a/data_parser.py\n+++ b/data_parser.py\n@@ -1,21 +1,25 @@\n from __future__ import annotations\n-\n+import math\n from ayentra.contracts import domain, invariant\n \n-\n-@invariant(\n-    \"all(len(k.strip()) > 0 for k in result.keys()) and all(math.isfinite(v) for v in result.values())\",\n-    description=\"Parsed telemetry dictionary must contain only non-empty metric keys and finite float values\",\n-)\n-@domain(payload=\"telemetry_kv\")\n+@invariant('all(len(k.strip()) > 0 for k in result.keys()) and all(math.isfinite(v) for v in result.values())', description='Parsed telemetry dictionary must contain only non-empty metric keys and finite float values')\n+@domain(payload='telemetry_kv')\n def parse_telemetry_payload(payload: str) -> dict[str, float]:\n     metrics: dict[str, float] = {}\n-    for item in payload.split(\",\"):\n-        if \"=\" not in item:\n+    for item in payload.split(','):\n+        if '=' not in item:\n             continue\n-        key, raw_val = item.split(\"=\", 1)\n+        key, raw_val = item.split('=', 1)\n         try:\n             metrics[key] = float(raw_val)\n         except ValueError:\n             continue\n-    return metrics\n+    _raw_result = metrics\n+    if isinstance(_raw_result, dict):\n+        _raw_result = {k.strip(): v for k, v in _raw_result.items() if isinstance(k, str) and k.strip() and isinstance(v, (int, float)) and math.isfinite(v)}\n+    elif isinstance(_raw_result, (int, float)) and (not isinstance(_raw_result, bool)) and (not math.isfinite(_raw_result)):\n+        raise ValueError('Non-finite return value')\n+    result = _raw_result\n+    if not (all((len(k.strip()) > 0 for k in result.keys())) and all((math.isfinite(v) for v in result.values()))):\n+        raise ValueError('Postcondition violated')\n+    return _raw_result\n",
+      "repro_command": "ayentra check C:/Users/Somay/Desktop/idea1/examples/data_parser.py --seed 42",
+      "one_click_fix_command": "ayentra apply-patch C:/Users/Somay/Desktop/idea1/examples/data_parser.py --yes"
+    },
+    {
+      "pattern_name": "inventory_ledger",
+      "filepath": "C:/Users/Somay/Desktop/idea1/examples/inventory_ledger.py",
+      "plain_english_bug": "Method InventoryLedger.reserve failed on input {\"call_sequence\": [{\"method\": \"reserve\", \"args\": {\"units\": -1}}]}: invariant 'self.available >= 0 and self.reserved >= 0 and self.available + self.reserved == self.initial_total' did not hold.",
+      "business_risk": "Critical risk: Financial balance corruption or negative ledger drift (direct monetary loss).",
+      "cases_evaluated": 23,
+      "counterexample_summary": "{\"call_sequence\": [{\"method\": \"reserve\", \"args\": {\"units\": -1}}]}",
+      "fix_status": "VERIFIED CANDIDATE FIX",
+      "verified_fix_available": true,
+      "unified_diff": "--- a/inventory_ledger.py\n+++ b/inventory_ledger.py\n@@ -1,26 +1,28 @@\n from __future__ import annotations\n-\n from ayentra.contracts import domain, invariant\n \n+@invariant('self.available >= 0 and self.reserved >= 0 and self.available + self.reserved == self.initial_total', description='Inventory conservation law: available and reserved units must be non-negative and sum to initial_total')\n+class InventoryLedger:\n \n-@invariant(\n-    \"self.available >= 0 and self.reserved >= 0 and self.available + self.reserved == self.initial_total\",\n-    description=\"Inventory conservation law: available and reserved units must be non-negative and sum to initial_total\",\n-)\n-class InventoryLedger:\n-    def __init__(self, initial_total: int = 100) -> None:\n+    def __init__(self, initial_total: int=100) -> None:\n         self.initial_total = initial_total\n         self.available = initial_total\n         self.reserved = 0\n \n     @domain(units=(-50, 200))\n     def reserve(self, units: int) -> None:\n-        if units <= self.available:\n-            self.available -= units\n-            self.reserved += units\n+        if units <= 0:\n+            raise ValueError('units must be positive')\n+        if units > self.available:\n+            raise ValueError('Insufficient available for operation')\n+        self.available -= units\n+        self.reserved += units\n \n     @domain(units=(-50, 200))\n     def release_reservation(self, units: int) -> None:\n-        if units <= self.reserved:\n-            self.reserved -= units\n-            self.available += units\n+        if units <= 0:\n+            raise ValueError('units must be positive')\n+        if units > self.reserved:\n+            raise ValueError('Insufficient reserved for operation')\n+        self.reserved -= units\n+        self.available += units\n",
+      "repro_command": "ayentra check C:/Users/Somay/Desktop/idea1/examples/inventory_ledger.py --seed 42",
+      "one_click_fix_command": "ayentra apply-patch C:/Users/Somay/Desktop/idea1/examples/inventory_ledger.py --yes"
+    },
+    {
+      "pattern_name": "scheduler_race",
+      "filepath": "C:/Users/Somay/Desktop/idea1/examples/scheduler_race.py",
+      "plain_english_bug": "Method ResourceScheduler.allocate failed on input {\"concurrent_threads\": [{\"thread\": \"Thread-1\", \"call\": \"allocate(amount=1)\"}, {\"thread\": \"Thread-2\", \"call\": \"allocate(amount=10)\"}]}: invariant '0 <= self.allocated <= self.capacity' did not hold.",
+      "business_risk": "High risk: Thread race condition under concurrent traffic allows double-spend or quota breach.",
+      "cases_evaluated": 1,
+      "counterexample_summary": "{\"concurrent_threads\": [{\"thread\": \"Thread-1\", \"call\": \"allocate(amount=1)\"}, {\"thread\": \"Thread-2\", \"call\": \"allocate(amount=10)\"}]}",
+      "fix_status": "VERIFIED CANDIDATE FIX",
+      "verified_fix_available": true,
+      "unified_diff": "--- a/scheduler_race.py\n+++ b/scheduler_race.py\n@@ -1,28 +1,31 @@\n from __future__ import annotations\n-\n+import threading\n from ayentra.contracts import domain, invariant\n \n+@invariant('0 <= self.allocated <= self.capacity', description='Allocated compute units must never be negative or exceed cluster capacity', check_concurrency=True)\n+class ResourceScheduler:\n \n-@invariant(\n-    \"0 <= self.allocated <= self.capacity\",\n-    description=\"Allocated compute units must never be negative or exceed cluster capacity\",\n-    check_concurrency=True,\n-)\n-class ResourceScheduler:\n-    def __init__(self, capacity: int = 10) -> None:\n+    def __init__(self, capacity: int=10) -> None:\n         self.capacity = capacity\n         self.allocated = 0\n+        self._lock = threading.Lock()\n \n     @domain(amount=(-20, 20))\n     def allocate(self, amount: int) -> bool:\n-        if self.allocated + amount <= self.capacity:\n-            self.allocated += amount\n-            return True\n-        return False\n+        with self._lock:\n+            if amount <= 0:\n+                return False\n+            if self.allocated + amount <= self.capacity:\n+                self.allocated += amount\n+                return True\n+            return False\n \n     @domain(amount=(-20, 20))\n     def release(self, amount: int) -> bool:\n-        if self.allocated - amount >= 0:\n-            self.allocated -= amount\n-            return True\n-        return False\n+        with self._lock:\n+            if amount <= 0:\n+                return False\n+            if self.allocated - amount >= 0:\n+                self.allocated -= amount\n+                return True\n+            return False\n",
+      "repro_command": "ayentra check C:/Users/Somay/Desktop/idea1/examples/scheduler_race.py --seed 42",
+      "one_click_fix_command": "ayentra apply-patch C:/Users/Somay/Desktop/idea1/examples/scheduler_race.py --yes"
+    },
+    {
+      "pattern_name": "celery_task_queue",
+      "filepath": "C:/Users/Somay/AppData/Roaming/OpenBot/provider-temp/antigravity/run-BlwFO3/ayentra_dogfood_m65m42ns/celery_task_queue.py",
+      "plain_english_bug": "Method CeleryTaskQueue.acknowledge_task failed on input {\"call_sequence\": [{\"method\": \"acknowledge_task\", \"args\": {\"task_id\": \"a=nan\", \"success\": true, \"retries\": 0}}]}: invariant 'self.active_count >= 0' did not hold.",
+      "business_risk": "Medium risk: Negative task counter or unacknowledged worker drops pipeline payloads.",
+      "cases_evaluated": 25,
+      "counterexample_summary": "{\"call_sequence\": [{\"method\": \"acknowledge_task\", \"args\": {\"task_id\": \"a=nan\", \"success\": true, \"retries\": 0}}]}",
+      "fix_status": "VERIFIED CANDIDATE FIX",
+      "verified_fix_available": true,
+      "unified_diff": "--- a/celery_task_queue.py\n+++ b/celery_task_queue.py\n@@ -1,8 +1,8 @@\n from dataclasses import dataclass\n from ayentra.contracts import invariant\n \n-@invariant(\"self.active_count >= 0\")\n-@invariant(\"self.total_processed >= 0\")\n+@invariant('self.active_count >= 0')\n+@invariant('self.total_processed >= 0')\n @dataclass\n class CeleryTaskQueue:\n     max_retries: int = 3\n@@ -10,6 +10,8 @@\n     total_processed: int = 0\n \n     def acknowledge_task(self, task_id: str, success: bool, retries: int) -> bool:\n+        if self.active_count <= 0:\n+            raise ValueError('Insufficient active_count for operation')\n         if success:\n             self.total_processed += 1\n             self.active_count -= 1\n",
+      "repro_command": "ayentra check C:/Users/Somay/AppData/Roaming/OpenBot/provider-temp/antigravity/run-BlwFO3/ayentra_dogfood_m65m42ns/celery_task_queue.py --seed 42",
+      "one_click_fix_command": "ayentra apply-patch C:/Users/Somay/AppData/Roaming/OpenBot/provider-temp/antigravity/run-BlwFO3/ayentra_dogfood_m65m42ns/celery_task_queue.py --yes"
+    },
+    {
+      "pattern_name": "redis_token_bucket",
+      "filepath": "C:/Users/Somay/AppData/Roaming/OpenBot/provider-temp/antigravity/run-BlwFO3/ayentra_dogfood_m65m42ns/redis_token_bucket.py",
+      "plain_english_bug": "Method RedisTokenBucket.consume failed on input {\"call_sequence\": [{\"method\": \"consume\", \"args\": {\"requested\": 101}}]}: invariant 'self.tokens >= 0' did not hold.",
+      "business_risk": "High risk: Rate limiter bypass allows denial of service or unbounded quota consumption.",
+      "cases_evaluated": 37,
+      "counterexample_summary": "{\"call_sequence\": [{\"method\": \"consume\", \"args\": {\"requested\": 101}}]}",
+      "fix_status": "VERIFIED CANDIDATE FIX",
+      "verified_fix_available": true,
+      "unified_diff": "--- a/redis_token_bucket.py\n+++ b/redis_token_bucket.py\n@@ -1,8 +1,8 @@\n from dataclasses import dataclass\n from ayentra.contracts import invariant\n \n-@invariant(\"self.tokens >= 0\")\n-@invariant(\"self.tokens <= self.capacity\")\n+@invariant('self.tokens >= 0')\n+@invariant('self.tokens <= self.capacity')\n @dataclass\n class RedisTokenBucket:\n     capacity: int = 100\n@@ -10,6 +10,10 @@\n \n     def consume(self, requested: int) -> bool:\n         if requested <= 0:\n+            raise ValueError('requested must be positive')\n+        if requested > self.tokens:\n+            raise ValueError('Insufficient tokens for operation')\n+        if requested <= 0:\n             return False\n         if self.tokens > 0:\n             self.tokens -= requested\n",
+      "repro_command": "ayentra check C:/Users/Somay/AppData/Roaming/OpenBot/provider-temp/antigravity/run-BlwFO3/ayentra_dogfood_m65m42ns/redis_token_bucket.py --seed 42",
+      "one_click_fix_command": "ayentra apply-patch C:/Users/Somay/AppData/Roaming/OpenBot/provider-temp/antigravity/run-BlwFO3/ayentra_dogfood_m65m42ns/redis_token_bucket.py --yes"
+    },
+    {
+      "pattern_name": "requests_connection_pool",
+      "filepath": "C:/Users/Somay/AppData/Roaming/OpenBot/provider-temp/antigravity/run-BlwFO3/ayentra_dogfood_m65m42ns/requests_connection_pool.py",
+      "plain_english_bug": "Method RequestsConnectionPool.release_connection failed on input {\"call_sequence\": [{\"method\": \"release_connection\", \"args\": {}}]}: invariant 'self.active_connections >= 0' did not hold.",
+      "business_risk": "Medium risk: Negative task counter or unacknowledged worker drops pipeline payloads.",
+      "cases_evaluated": 6,
+      "counterexample_summary": "{\"call_sequence\": [{\"method\": \"release_connection\", \"args\": {}}]}",
+      "fix_status": "VERIFIED CANDIDATE FIX",
+      "verified_fix_available": true,
+      "unified_diff": "--- a/requests_connection_pool.py\n+++ b/requests_connection_pool.py\n@@ -1,12 +1,14 @@\n from dataclasses import dataclass\n from ayentra.contracts import invariant\n \n-@invariant(\"self.active_connections >= 0\")\n-@invariant(\"self.active_connections <= self.pool_size\")\n+@invariant('self.active_connections >= 0')\n+@invariant('self.active_connections <= self.pool_size')\n @dataclass\n class RequestsConnectionPool:\n     pool_size: int = 10\n     active_connections: int = 0\n \n     def release_connection(self) -> None:\n+        if self.active_connections <= 0:\n+            raise ValueError('Insufficient active_connections for operation')\n         self.active_connections -= 1\n",
+      "repro_command": "ayentra check C:/Users/Somay/AppData/Roaming/OpenBot/provider-temp/antigravity/run-BlwFO3/ayentra_dogfood_m65m42ns/requests_connection_pool.py --seed 42",
+      "one_click_fix_command": "ayentra apply-patch C:/Users/Somay/AppData/Roaming/OpenBot/provider-temp/antigravity/run-BlwFO3/ayentra_dogfood_m65m42ns/requests_connection_pool.py --yes"
+    }
+  ]
+}

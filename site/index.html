@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ayentra | Catch Python Edge Cases Before Merge</title>
+  <meta name="description" content="Write one rule your Python code must never break. Ayentra automatically finds the exact input that breaks it, shrinks the bug to a 2-line reproduction, and tests the fix in a safe sandbox before you merge.">
+  <link rel="canonical" href="https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site/">
+  <meta property="og:title" content="Ayentra | Catch Python Edge Cases Before Merge">
+  <meta property="og:description" content="Write one rule your Python code must never break. Ayentra finds the breaking input, shrinks it to 2 lines, and tests a safe fix before merge.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site/">
+  <meta property="og:image" content="https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Ayentra | Catch Python Edge Cases Before Merge">
+  <meta name="twitter:description" content="Catch Python edge cases and thread races before merge with 2-line minimal counterexamples.">
+  <link rel="stylesheet" href="styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Ayentra",
+    "operatingSystem": "Cross-platform",
+    "applicationCategory": "DeveloperApplication",
+    "description": "Invariant-aware bug finding and safe sandbox fixes for Python CI pipelines.",
+    "softwareVersion": "0.1.0",
+    "offers": {
+      "@type": "Offer",
+      "price": "0.00",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Navigation (Simplified to 5 Top-Level Links + 1 Primary CTA) -->
+  <header class="nav-header">
+    <div class="nav-container">
+      <a href="#" class="brand-wrapper">
+        <span class="brand-name">Ayentra</span>
+      </a>
+
+      <nav aria-label="Primary navigation">
+        <ul class="nav-links">
+          <li><a href="#demo" class="nav-link">Interactive Demo</a></li>
+          <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+          <li><a href="#quickstart" class="nav-link">Quickstart &amp; CLI</a></li>
+          <li><a href="#benchmark" class="nav-link">Benchmarks</a></li>
+          <li><a href="#sbom" class="nav-link">SBOM &amp; Security</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <button type="button" class="btn-primary" onclick="openLegalModal('pilot')">Enterprise Pilot</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <h1 class="hero-title">
+      Tests verify what you anticipated.<br>
+      <span class="hero-title-accent">Ayentra catches what you forgot.</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      Write one rule your Python code must never break. Ayentra automatically finds the exact input that breaks it, shrinks the bug to a 2-line reproduction, and tests the fix in a safe sandbox before you merge.
+    </p>
+
+    <div class="hero-cta-group">
+      <a href="#demo" class="btn-primary hero-primary-cta">
+        Explore Interactive Demo
+      </a>
+
+      <div class="cli-badge-group" data-cmd="pip install ayentra" title="Click to copy install command">
+        <code class="cli-badge-code"><span>$ </span>pip install ayentra</code>
+        <button type="button" class="cli-copy-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span>Copy</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="hero-proof-bar">
+      <div class="hero-proof-item">
+        <span class="check-icon">✓</span>
+        <span>2-line reproducible bug examples</span>
+      </div>
+      <div class="hero-proof-item">
+        <span class="check-icon">✓</span>
+        <span>Zero silent file overwrites</span>
+      </div>
+      <div class="hero-proof-item">
+        <span class="check-icon">✓</span>
+        <span>Reproducible bug receipts</span>
+      </div>
+      <div class="hero-proof-item">
+        <span class="check-icon">✓</span>
+        <span>Safe sandbox patch testing</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Demo Section -->
+  <section class="demo-section" id="demo">
+    <div class="section-header-centered">
+      <div class="section-badge">Interactive Live Demo</div>
+      <h2 class="section-title">Watch Ayentra Catch and Fix Real Bugs</h2>
+      <p class="section-desc">
+        Pick a real Python bug below and click Run Check to see how Ayentra finds the exact failing input and tests a safe fix.
+      </p>
+    </div>
+
+    <div class="demo-container">
+      <!-- Unified Icon + Text Folder Tabs for Scenarios -->
+      <div class="demo-scenario-bar">
+        <div class="scenario-tabs" role="tablist" aria-label="Demo scenarios">
+          <button type="button" class="scenario-tab active" data-scenario="scheduler" role="tab" aria-selected="true" onclick="switchDemoTarget('scheduler')">
+            <span class="quickstart-tab-icon">&#9889;</span>
+            <span>1. Task Scheduler Race Bug</span>
+          </button>
+          <button type="button" class="scenario-tab" data-scenario="inventory" role="tab" aria-selected="false" onclick="switchDemoTarget('inventory')">
+            <span class="quickstart-tab-icon">&#128230;</span>
+            <span>2. Inventory Balance Bug</span>
+          </button>
+          <button type="button" class="scenario-tab" data-scenario="parser" role="tab" aria-selected="false" onclick="switchDemoTarget('parser')">
+            <span class="quickstart-tab-icon">&#128269;</span>
+            <span>3. Data Parser Input Bug</span>
+          </button>
+          <button type="button" class="scenario-tab" data-scenario="ledger" role="tab" aria-selected="false" onclick="switchDemoTarget('ledger')">
+            <span class="quickstart-tab-icon">&#128737;</span>
+            <span>4. Payment Ledger Bug</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Clearly Separated Toolbar: View Navigation on Left, Functional Actions on Right -->
+      <div class="demo-toolbar">
+        <div class="view-mode-tabs" role="tablist" aria-label="Demo view modes">
+          <button type="button" class="view-tab active" id="tab-view-inspector" role="tab" aria-selected="true" aria-controls="workspace-inspector" onclick="switchDemoView('inspector')">
+            <span>&#128187;</span>
+            <span>Code &amp; Sandbox View</span>
+          </button>
+          <button type="button" class="view-tab" id="tab-view-prbot" role="tab" aria-selected="false" aria-controls="workspace-prbot" onclick="switchDemoView('prbot')">
+            <span>&#128203;</span>
+            <span>GitHub PR Comment</span>
+          </button>
+        </div>
+
+        <div class="demo-action-group">
+          <button type="button" class="btn-secondary" id="demo-sarif-btn" onclick="downloadSarif(currentScenarioId)" aria-label="Download SARIF">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Download SARIF</span>
+          </button>
+          <button type="button" class="btn-secondary" id="demo-ci-summary-btn" onclick="copyCiSummary(currentScenarioId)" aria-label="Copy CI Summary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy CI Summary</span>
+          </button>
+          <span class="demo-shortcut-hint">Shortcut: <kbd class="kbd-badge">Ctrl+Enter</kbd></span>
+          <button type="button" class="btn-run" id="run-verification-btn">
+            <span>&#9654; Run Check</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Split Workspace -->
+      <div class="demo-workspace" id="workspace-inspector" role="tabpanel" aria-labelledby="tab-view-inspector">
+        <!-- Left: Code Pane with Line Number Gutter -->
+        <div class="code-pane">
+          <div class="pane-header">
+            <div class="pane-title-group">
+              <span class="pane-file-title" id="pane-file-name">examples/scheduler_race.py</span>
+              <span class="pane-tag tag-contract" id="pane-tag">Thread Safety Rule</span>
+            </div>
+            <span style="font-size: 12px; color: var(--text-muted);">Python 3.10+</span>
+          </div>
+
+          <div class="editor-wrapper">
+            <pre class="code-block"><code id="code-content"></code></pre>
+          </div>
+        </div>
+
+        <!-- Right: Inspector Pane -->
+        <div class="inspector-pane">
+          <div class="pane-header">
+            <div class="pane-title-group">
+              <span style="font-size: 14px; font-weight: 700; color: var(--text-primary);">Bug &amp; Fix Inspector</span>
+            </div>
+            <span class="pane-tag tag-verified">Sandbox Ready</span>
+          </div>
+
+          <div class="inspector-body" id="inspector-body">
+            <!-- Populated dynamically by app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- GitHub PR Bot Dedicated View -->
+      <div class="pr-bot-workspace" id="workspace-prbot" role="tabpanel" aria-labelledby="tab-view-prbot" style="display: none; padding: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-default); padding-bottom: 16px; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;" id="pr-sim-title">
+              Pull Request #142: Automated Bug &amp; Fix Check
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-secondary); flex-wrap: wrap;">
+              <span class="status-pill pill-pass" id="pr-sim-state-pill">Open</span>
+              <span><strong>ayentra-bot</strong> found a verified fix ready to merge into <code>main</code></span>
+            </div>
+          </div>
+          <button type="button" class="btn-run" onclick="runVerificationSimulation()">
+            <span>Re-run Check</span>
+          </button>
+        </div>
+
+        <div id="pr-bot-standalone-card">
+          <!-- Populated dynamically by app.js -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Three Mission-Critical Failures Section -->
+  <section class="difference-section" id="failures">
+    <div class="section-header-centered">
+      <div class="section-badge">Why Unit Tests Are Not Enough</div>
+      <h2 class="section-title">Three Production Bugs Normal Tests Miss</h2>
+      <p class="section-desc">
+        Unit tests only check the examples you thought of writing. Ayentra tests thousands of edge cases and thread timings automatically before code reaches production.
+      </p>
+    </div>
+
+    <div class="cards-grid-three">
+      <div class="feature-card">
+        <div class="feature-icon-badge icon-race">⚡</div>
+        <h3 class="feature-title">Multi-Thread Race Conditions</h3>
+        <p class="feature-desc">
+          Normal tests run one request at a time and pass. In production, two requests arriving together can corrupt balances or double-book tasks. Ayentra tests parallel thread timings to catch races early.
+        </p>
+        <div class="feature-code-snippet"><span class="cmt"># Tests parallel thread timings automatically</span>
+<span class="dec">@invariant</span>(..., check_concurrency=<span class="kw">True</span>)
+<span class="cmt"># Catches race conditions before production</span></div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-badge icon-shrink">🔍</div>
+        <h3 class="feature-title">Unexpected Edge-Case Inputs</h3>
+        <p class="feature-desc">
+          Developers usually test clean positive numbers and normal strings. Ayentra feeds negative amounts, NaN floats, and empty strings, then shrinks any crash down to a 2-line example.
+        </p>
+        <div class="feature-code-snippet"><span class="cmt"># Shrunk to a 2-line reproduction:</span>
+ledger.reserve(units=<span class="num">-1</span>)
+<span class="cmt"># Available becomes 101, Reserved becomes -1</span></div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-badge icon-sandbox">🛡️</div>
+        <h3 class="feature-title">Fixes That Break Something Else</h3>
+        <p class="feature-desc">
+          A quick hotfix often solves one crash while breaking another feature. Ayentra tests every suggested code fix inside an isolated sandbox against your full test suite first.
+        </p>
+        <div class="feature-code-snippet"><span class="cmt"># 3-step sandbox check before saving:</span>
+1. Re-run failing input (PASS)
+2. Test 120 random edge cases (PASS)
+3. Run your full pytest suite (PASS)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works (Proper H2 -> H3 Outline Hierarchy) -->
+  <section class="how-section" id="how-it-works">
+    <div class="how-container">
+      <div class="section-header-centered">
+        <div class="section-badge">How It Works</div>
+        <h2 class="section-title">From Rule to Verified Fix in 4 Steps</h2>
+        <p class="section-desc">
+          You write the rule once. Ayentra handles the edge-case testing, bug shrinking, and sandbox verification automatically.
+        </p>
+      </div>
+
+      <div class="workflow-steps">
+        <div class="workflow-step">
+          <div class="step-num">Step 01</div>
+          <h3 class="step-name">Write One Rule</h3>
+          <p class="step-text">
+            Add an <code>@invariant</code> decorator in Python or a rule in <code>ayentra.toml</code> stating what must always stay true.
+          </p>
+        </div>
+
+        <div class="workflow-step">
+          <div class="step-num">Step 02</div>
+          <h3 class="step-name">Auto-Generate Inputs</h3>
+          <p class="step-text">
+            Ayentra reads your Python type hints (ints, Decimals, dates, dataclasses) and generates realistic edge-case inputs automatically.
+          </p>
+        </div>
+
+        <div class="workflow-step">
+          <div class="step-num">Step 03</div>
+          <h3 class="step-name">Shrink to 2 Lines</h3>
+          <p class="step-text">
+            When an input breaks your rule, Ayentra simplifies it down to the smallest 2-line reproduction so you see the exact cause immediately.
+          </p>
+        </div>
+
+        <div class="workflow-step">
+          <div class="step-num">Step 04</div>
+          <h3 class="step-name">Verify Fix in Sandbox</h3>
+          <p class="step-text">
+            Ayentra generates a clean code patch and tests it in a temporary sandbox against both the bug and your existing pytest suite.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Table -->
+  <section class="table-section" id="comparison">
+    <div class="section-header-centered">
+      <div class="section-badge">Tool Comparison</div>
+      <h2 class="section-title">How Ayentra Fits Your Workflow</h2>
+      <p class="section-desc">
+        Ayentra works alongside Pytest and Mypy by catching edge-case inputs and race conditions they are not designed to test.
+      </p>
+    </div>
+
+    <div class="table-wrapper">
+      <div class="table-scroll">
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th>Standard Pytest</th>
+              <th>Type Checkers (Mypy)</th>
+              <th class="col-ayentra">Ayentra</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Checks Business Rules</strong></td>
+              <td>Manual per test</td>
+              <td><span class="check-no">Type hints only</span></td>
+              <td class="col-ayentra"><span class="check-yes">✓ Automatic across all inputs</span></td>
+            </tr>
+            <tr>
+              <td><strong>Shrinks Bugs to 2 Lines</strong></td>
+              <td><span class="check-no">None</span></td>
+              <td><span class="check-no">None</span></td>
+              <td class="col-ayentra"><span class="check-yes">✓ Minimal 1-2 line example</span></td>
+            </tr>
+            <tr>
+              <td><strong>Catches Thread Race Conditions</strong></td>
+              <td><span class="check-no">None</span></td>
+              <td><span class="check-no">None</span></td>
+              <td class="col-ayentra"><span class="check-yes">✓ Parallel thread testing</span></td>
+            </tr>
+            <tr>
+              <td><strong>Generates &amp; Tests Code Fixes</strong></td>
+              <td><span class="check-no">None</span></td>
+              <td><span class="check-no">None</span></td>
+              <td class="col-ayentra"><span class="check-yes">✓ Tested in isolated sandbox</span></td>
+            </tr>
+            <tr>
+              <td><strong>Reproducible Bug Receipts</strong></td>
+              <td><span class="check-no">None</span></td>
+              <td><span class="check-no">None</span></td>
+              <td class="col-ayentra"><span class="check-yes">✓ Saved with exact seed</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 60-Second Setup -->
+  <section class="quickstart-section" id="quickstart">
+    <div class="section-header-centered">
+      <div class="section-badge">Fast Setup</div>
+      <h2 class="section-title">Add to Your Pipeline in 60 Seconds</h2>
+      <p class="section-desc">
+        Drop Ayentra into GitHub Actions, configure with pyproject.toml, or run it locally in your terminal with one command.
+      </p>
+    </div>
+
+    <div class="quickstart-card">
+      <div class="quickstart-nav">
+        <div class="quickstart-tabs" role="tablist" aria-label="Quickstart configuration tabs">
+          <button type="button" class="quickstart-tab active" data-quickstart-tab="workflow" role="tab" aria-selected="true" id="tab-btn-workflow">
+            <span class="quickstart-tab-icon">&#9889;</span>
+            <span>.github/workflows/ayentra.yml</span>
+          </button>
+          <button type="button" class="quickstart-tab" data-quickstart-tab="toml" role="tab" aria-selected="false" id="tab-btn-toml">
+            <span class="quickstart-tab-icon">&#9881;</span>
+            <span>pyproject.toml</span>
+          </button>
+          <button type="button" class="quickstart-tab" data-quickstart-tab="cli" role="tab" aria-selected="false" id="tab-btn-cli">
+            <span class="quickstart-tab-icon">&#128187;</span>
+            <span>Local Terminal</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Panel 1: GitHub Actions Workflow -->
+      <div class="quickstart-panel active" id="quickstart-panel-workflow" role="tabpanel">
+        <div class="terminal-bar">
+          <div class="terminal-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+          <span class="terminal-title">.github/workflows/ayentra.yml</span>
+          <button type="button" class="quickstart-copy-btn" data-copy-target="workflow" title="Copy GitHub Actions workflow">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy Workflow</span>
+          </button>
+        </div>
+        <div class="quickstart-terminal-body">
+          <pre class="quickstart-code"><code id="code-quickstart-workflow"><span class="syn-comment"># .github/workflows/ayentra.yml</span>
+<span class="syn-key">name</span>: <span class="syn-str">Invariant Verification Gate</span>
+<span class="syn-key">on</span>:
+  <span class="syn-key">pull_request</span>:
+    <span class="syn-key">branches</span>: [<span class="syn-str">main</span>]
+  <span class="syn-key">push</span>:
+    <span class="syn-key">branches</span>: [<span class="syn-str">main</span>]
+
+<span class="syn-key">jobs</span>:
+  <span class="syn-key">verify</span>:
+    <span class="syn-key">name</span>: <span class="syn-str">Run Invariant Verification</span>
+    <span class="syn-key">runs-on</span>: <span class="syn-str">ubuntu-latest</span>
+    <span class="syn-key">steps</span>:
+      - <span class="syn-key">name</span>: <span class="syn-str">Checkout code</span>
+        <span class="syn-key">uses</span>: <span class="syn-str">actions/checkout@v4</span>
+
+      - <span class="syn-key">name</span>: <span class="syn-str">Set up Python</span>
+        <span class="syn-key">uses</span>: <span class="syn-str">actions/setup-python@v5</span>
+        <span class="syn-key">with</span>:
+          <span class="syn-key">python-version</span>: <span class="syn-str">'3.11'</span>
+
+      - <span class="syn-key">name</span>: <span class="syn-str">Ayentra Invariant Gate</span>
+        <span class="syn-key">uses</span>: <span class="syn-str">ayentra/ayentra-action@v0.1.0</span>
+        <span class="syn-key">with</span>:
+          <span class="syn-key">target</span>: <span class="syn-str">src/</span>
+          <span class="syn-key">fix</span>: <span class="syn-bool">true</span>
+          <span class="syn-key">sarif-output</span>: <span class="syn-str">ayentra.sarif</span>
+
+      - <span class="syn-key">name</span>: <span class="syn-str">Upload SARIF Report</span>
+        <span class="syn-key">uses</span>: <span class="syn-str">github/codeql-action/upload-sarif@v3</span>
+        <span class="syn-key">if</span>: <span class="syn-str">always()</span>
+        <span class="syn-key">with</span>:
+          <span class="syn-key">sarif_file</span>: <span class="syn-str">ayentra.sarif</span></code></pre>
+        </div>
+      </div>
+
+      <!-- Tab Panel 2: pyproject.toml -->
+      <div class="quickstart-panel" id="quickstart-panel-toml" role="tabpanel" style="display: none;">
+        <div class="terminal-bar">
+          <div class="terminal-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+          <span class="terminal-title">pyproject.toml</span>
+          <button type="button" class="quickstart-copy-btn" data-copy-target="toml" title="Copy pyproject.toml configuration">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy Config</span>
+          </button>
+        </div>
+        <div class="quickstart-terminal-body">
+          <pre class="quickstart-code"><code id="code-quickstart-toml"><span class="syn-comment"># pyproject.toml</span>
+[<span class="syn-sec">tool.ayentra</span>]
+<span class="syn-key">target</span> = <span class="syn-str">"src/"</span>
+<span class="syn-key">max_examples</span> = <span class="syn-num">120</span>
+<span class="syn-key">check_concurrency</span> = <span class="syn-bool">true</span>
+<span class="syn-key">sandbox_timeout</span> = <span class="syn-num">30</span>
+<span class="syn-key">sarif_output</span> = <span class="syn-str">"ayentra.sarif"</span>
+<span class="syn-key">fail_on_violation</span> = <span class="syn-bool">true</span>
+<span class="syn-key">deterministic_receipt</span> = <span class="syn-bool">true</span></code></pre>
+        </div>
+      </div>
+
+      <!-- Tab Panel 3: Local CLI -->
+      <div class="quickstart-panel" id="quickstart-panel-cli" role="tabpanel" style="display: none;">
+        <div class="terminal-bar">
+          <div class="terminal-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+          <span class="terminal-title">Terminal: Run Invariant Check Locally</span>
+          <button type="button" class="quickstart-copy-btn" data-copy-target="cli" title="Copy local CLI command">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy Command</span>
+          </button>
+        </div>
+        <div class="quickstart-terminal-body">
+          <div class="term-line">
+            <span class="term-out">$ </span><span class="term-cmd">pip install ayentra &amp;&amp; ayentra check src/ --fix --ci</span>
+          </div>
+          <div class="term-line term-out">
+            [ayentra] Discovered 4 invariant contracts across src/<br>
+            [ayentra] Testing property rules across edge cases...<br>
+            [PASS] src/ledger.py: balance_non_negative (120/120 cases passed)<br>
+            [PASS] src/scheduler.py: no_deadlock_on_cancel (120/120 cases passed)<br>
+            [PASS] src/discount.py: price_after_discount_bounded (120/120 cases passed)<br>
+            [PASS] src/rbac.py: admin_invariant_retained (120/120 cases passed)
+          </div>
+          <div class="term-line term-highlight">
+            Result: All 4 rules satisfied (0 bugs found).<br>
+            SARIF report: ayentra.sarif (0 diagnostics).<br>
+            Execution receipt: ayentra.receipt.json (verified).
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLI Reference & Dogfooding (Converted from 2x2 Noisy Grid into Unified Tabbed Viewer) -->
+  <section class="cli-section" id="cli">
+    <div class="section-header-centered">
+      <div class="section-badge">Simple Terminal Commands</div>
+      <h2 class="section-title">Run Ayentra on Your Machine</h2>
+      <p class="section-desc">
+        Check rules, view 2-line counterexamples, and test fixes right from your command line.
+      </p>
+    </div>
+
+    <div class="quickstart-card">
+      <div class="quickstart-nav">
+        <div class="quickstart-tabs" role="tablist" aria-label="CLI workflow examples">
+          <button type="button" class="quickstart-tab cli-workflow-tab active" data-cli-tab="check" role="tab" aria-selected="true">
+            <span class="quickstart-tab-icon">&#9889;</span>
+            <span>1. Find &amp; Fix Bugs</span>
+          </button>
+          <button type="button" class="quickstart-tab cli-workflow-tab" data-cli-tab="init" role="tab" aria-selected="false">
+            <span class="quickstart-tab-icon">&#9881;</span>
+            <span>2. Add CI in 1 Step</span>
+          </button>
+          <button type="button" class="quickstart-tab cli-workflow-tab" data-cli-tab="demo" role="tab" aria-selected="false">
+            <span class="quickstart-tab-icon">&#128187;</span>
+            <span>3. Quick Tutorial</span>
+          </button>
+          <button type="button" class="quickstart-tab cli-workflow-tab" data-cli-tab="dogfood" role="tab" aria-selected="false">
+            <span class="quickstart-tab-icon">&#128269;</span>
+            <span>4. Test Full Package</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- CLI Tab 1: Check & Apply Patch -->
+      <div class="quickstart-panel active" id="cli-panel-check" role="tabpanel">
+        <div class="terminal-bar">
+          <div class="terminal-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span class="terminal-title">Terminal: Check Code for Broken Invariants</span>
+          <button type="button" class="quickstart-copy-btn" onclick="copyToClipboard('ayentra apply-patch examples/inventory_ledger.py --yes', 'Patch command copied')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy Patch Command</span>
+          </button>
+        </div>
+        <div class="quickstart-terminal-body">
+          <div class="term-line">
+            <span class="term-out">$ </span><code class="term-cmd">ayentra check examples/ --seed 42</code>
+          </div>
+          <div class="term-line term-out">
+            Checking 3 files for invariant violations...<br>
+            [FAIL] examples/inventory_ledger.py (1 violation found)<br>
+            [FAIL] examples/scheduler_race.py (1 violation found)<br>
+            [PASS] examples/data_parser.py (0 violations)
+          </div>
+          <div class="term-line">
+            <span class="term-out">$ </span><code class="term-cmd">ayentra apply-patch examples/inventory_ledger.py --yes</code>
+          </div>
+          <div class="term-line term-highlight">
+            Verified candidate fix passes all 3 sandbox checks.<br>
+            Patch written to examples/inventory_ledger.py.<br>
+            Existing pytest suite: 100% PASS.
+          </div>
+        </div>
+      </div>
+
+      <!-- CLI Tab 2: Customer Pilot Onboarding -->
+      <div class="quickstart-panel" id="cli-panel-init" role="tabpanel" style="display: none;">
+        <div class="terminal-bar">
+          <div class="terminal-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span class="terminal-title">Terminal: Automatic CI Configuration</span>
+          <button type="button" class="quickstart-copy-btn" onclick="copyToClipboard('ayentra init --ci', 'Init command copied')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy Command</span>
+          </button>
+        </div>
+        <div class="quickstart-terminal-body">
+          <div class="term-line">
+            <span class="term-out">$ </span><code class="term-cmd">ayentra init --ci</code>
+          </div>
+          <div class="term-line term-out">
+            Scanning repository structure... Detected Python package at src/<br>
+            Created contract configuration: ayentra.toml<br>
+            Created GitHub Actions workflow: .github/workflows/ayentra.yml
+          </div>
+          <div class="term-line term-highlight">
+            Setup complete. Pull requests are now protected automatically.
+          </div>
+        </div>
+      </div>
+
+      <!-- CLI Tab 3: Guided Walkthrough -->
+      <div class="quickstart-panel" id="cli-panel-demo" role="tabpanel" style="display: none;">
+        <div class="terminal-bar">
+          <div class="terminal-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span class="terminal-title">Terminal: Quick Interactive Tutorial</span>
+          <button type="button" class="quickstart-copy-btn" onclick="copyToClipboard('ayentra demo', 'Demo command copied')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy Command</span>
+          </button>
+        </div>
+        <div class="quickstart-terminal-body">
+          <div class="term-line">
+            <span class="term-out">$ </span><code class="term-cmd">ayentra demo</code>
+          </div>
+          <div class="term-line term-out">
+            Launching interactive invariant walkthrough...<br>
+            [1/3] Concurrency race condition detected in scheduler<br>
+            [2/3] Shrinking failing vector to minimal counterexample<br>
+            [3/3] Sandbox patch synthesized and verified against pytest suite
+          </div>
+          <div class="term-line term-highlight">
+            Guided demo complete. Ready for real production codebases.
+          </div>
+        </div>
+      </div>
+
+      <!-- CLI Tab 4: Dogfooding Sweep -->
+      <div class="quickstart-panel" id="cli-panel-dogfood" role="tabpanel" style="display: none;">
+        <div class="terminal-bar">
+          <div class="terminal-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span class="terminal-title">Terminal: Package-Wide Verification Sweep</span>
+          <button type="button" class="quickstart-copy-btn" onclick="copyToClipboard('ayentra dogfood --package redis-py --seed 42', 'Dogfood command copied')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy Command</span>
+          </button>
+        </div>
+        <div class="quickstart-terminal-body">
+          <div class="term-line">
+            <span class="term-out">$ </span><code class="term-cmd">ayentra dogfood --package redis-py --seed 42</code>
+          </div>
+          <div class="term-line term-out">
+            Scanning repository contracts and candidate invariants...<br>
+            Synthesizing strategies for 48 connection pool methods...<br>
+            Evaluating thread barrier schedules...
+          </div>
+          <div class="term-line term-highlight">
+            Receipt: receipts/dogfood-redis-py.json<br>
+            SHA-256: 4f1a29c8e819b4...<br>
+            Status: VERIFIED (0 regressions detected)
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dedicated PR Review Bot Simulation Section -->
+  <section class="cli-section" id="pr-bot" style="border-top: 1px solid var(--border-subtle);">
+    <div class="section-header-centered">
+      <div class="section-badge">Automated PR Reviews</div>
+      <h2 class="section-title">Catch Bugs in Pull Requests Before Merge</h2>
+      <p class="section-subtitle">
+        Ayentra tests pull requests, posts the exact 2-line failing case in a comment, and generates a verified code fix before anyone clicks merge.
+      </p>
+    </div>
+
+    <div class="cli-grid">
+      <!-- Simulation Command Card -->
+      <div class="terminal-card">
+        <div class="terminal-bar">
+          <div class="terminal-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span class="terminal-title">Offline PR Review Bot Simulation</span>
+        </div>
+        <div class="terminal-body">
+          <div class="term-line">
+            <span class="term-out">$ </span><code class="term-cmd">ayentra check --mock-pr-event</code>
+          </div>
+          <div class="term-line term-out">
+            [MOCK PR BOT] Mock PR #101 (ayentra/ayentra-core)<br>
+            [MOCK PR BOT] Target: a1b2c3d -&gt; main<br>
+            [MOCK PR BOT] Title: &quot;Enforce Concurrency Invariant Gate&quot;<br>
+            [MOCK PR BOT] Generated review comment (2,790 bytes)<br>
+            [MOCK PR BOT] Posted simulated review comment to PR #101 (200 OK)
+          </div>
+          <div class="term-line term-highlight">
+            Offline simulation complete. Zero tokens or network calls required.
+          </div>
+        </div>
+      </div>
+
+      <!-- Unified Diff Analysis Card -->
+      <div class="terminal-card">
+        <div class="terminal-bar">
+          <div class="terminal-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span class="terminal-title">Pre-Commit / Stdin Diff Verification Gate</span>
+        </div>
+        <div class="terminal-body">
+          <div class="term-line">
+            <span class="term-out">$ </span><code class="term-cmd">git diff HEAD~1 | ayentra check -</code>
+          </div>
+          <div class="term-line term-out">
+            Scanning unified diff for invariant boundary defects...<br>
+            Discovered 1 critical risk: Financial balance leak in payment ledger.<br>
+            Debiting source balance without destination credit.
+          </div>
+          <div class="term-line term-highlight">
+            Verdict: BLOCKED (Pre-commit gate failed)
+          </div>
+        </div>
+      </div>
+
+      <!-- PR Bot Review Simulator Card (Positioned Under #pr-bot Heading) -->
+      <div class="pr-bot-card" style="grid-column: 1 / -1;">
+        <div class="pr-bot-header">
+          <div class="pr-bot-author">
+            <div class="pr-bot-avatar">A</div>
+            <span>ayentra-bot[bot]</span>
+            <span class="pr-bot-badge">bot comment</span>
+            <span style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">commented on Pull Request #14 (examples/inventory_ledger.py)</span>
+          </div>
+          <span class="status-pill pill-fail">Verification Gate Failed</span>
+        </div>
+        <div class="pr-bot-body">
+          <p style="margin-bottom: 12px;">
+            <strong>Ayentra Invariant Verification Gate FAILED:</strong> Method <code>InventoryLedger.reserve</code> violated invariant <code>self.available &gt;= 0 and self.reserved &gt;= 0 and self.available + self.reserved == self.initial_total</code> on input <code>{"units": -1}</code>.
+          </p>
+
+          <details open style="border: 1px solid var(--border-default); border-radius: var(--radius-md); margin: 12px 0; overflow: hidden;">
+            <summary style="background-color: var(--bg-surface); padding: 8px 12px; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--text-primary); border-bottom: 1px solid var(--border-default);">
+              Unified Patch Diff (3-Stage Sandbox Verified: +6 / -2 lines)
+            </summary>
+            <div class="pr-diff-container" style="margin: 0; border-radius: 0;">
+              <div class="pr-diff-content">
+                <span class="diff-line diff-hunk">@@ -15,4 +15,8 @@ def reserve(self, units: int) -&gt; None:</span>
+                <span class="diff-line diff-del">-        if units &lt;= self.available:</span>
+                <span class="diff-line diff-del">-            self.available -= units</span>
+                <span class="diff-line diff-add">+        if units &lt;= 0:</span>
+                <span class="diff-line diff-add">+            raise ValueError('units must be positive')</span>
+                <span class="diff-line diff-add">+        if units &gt; self.available:</span>
+                <span class="diff-line diff-add">+            raise ValueError('Insufficient available for operation')</span>
+                <span class="diff-line">         self.available -= units</span>
+              </div>
+            </div>
+          </details>
+
+          <div class="pr-action-row">
+            <span style="font-size: 12px; color: var(--accent-green); font-weight: 700;">
+              Sandbox Status: VERIFIED CANDIDATE FIX (Counterexample Replay: PASS | Invariant Sweep: PASS | Pytest: PASS)
+            </span>
+            <div class="cmd-snippet-box">
+              <code>$ ayentra apply-patch examples/inventory_ledger.py --yes</code>
+              <button type="button" class="btn-secondary" onclick="copyToClipboard('ayentra apply-patch examples/inventory_ledger.py --yes', 'Command copied')" style="padding: 4px 10px; font-size: 12px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <span>Copy</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Enterprise Pilot Section -->
+  <section class="cli-section" id="pilot" style="border-top: 1px solid var(--border-subtle);">
+    <div class="section-header-centered">
+      <div class="section-badge">Enterprise Pilot</div>
+      <h2 class="section-title">Protect Your Codebase in 2 Commands</h2>
+      <p class="section-subtitle">
+        Set up automated bug checks and safe fixes in your CI pipeline with zero complex setup.
+        Full GitHub Actions workflow scaffolding, SARIF code scanning reports, and isolated sandbox patch testing.
+      </p>
+    </div>
+
+    <div class="cards-grid-three">
+      <div class="difference-card">
+        <div class="metric-label">1. Quick CI Setup</div>
+        <h3 style="font-size: 16px; margin-bottom: 8px;">Two-Command Setup</h3>
+        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">
+          Install and enable automatic bug checks across your entire repository in two commands.
+        </p>
+        <div class="feature-code-snippet">pip install ayentra
+ayentra init --ci</div>
+      </div>
+
+      <div class="difference-card">
+        <div class="metric-label">2. Security Scanning</div>
+        <h3 style="font-size: 16px; margin-bottom: 8px;">Standard Security Alerts</h3>
+        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">
+          Integrates directly with GitHub Code Scanning alerts, SonarQube, and CI dashboards.
+        </p>
+        <div class="feature-code-snippet">ayentra check . --ci --sarif report.sarif</div>
+      </div>
+
+      <div class="difference-card">
+        <div class="metric-label">3. Automated Review</div>
+        <h3 style="font-size: 16px; margin-bottom: 8px;">Helpful PR Comments</h3>
+        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">
+          Posts clear GitHub pull request comments showing the exact bug reproduction and a tested fix.
+        </p>
+        <div class="feature-code-snippet">ayentra check --mock-pr-event</div>
+      </div>
+    </div>
+
+    <div class="data-table-card" style="padding: 20px 24px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <h3 style="font-size: 16px; margin-bottom: 4px;">Real Production Example: Financial Ledger</h3>
+          <p style="font-size: 14px; color: var(--text-secondary);">
+            See how Ayentra catches balance drift and race conditions in <code>examples/customer_pilot.py</code> and read the guide in <code>docs/design_partner_kit.md</code>.
+          </p>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <a href="#demo" class="btn-secondary">Explore Demo</a>
+          <a href="#studio" class="btn-primary">Launch Studio</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Real-World Dogfood Section -->
+  <section class="cli-section" id="dogfood" style="border-top: 1px solid var(--border-subtle);">
+    <div class="section-header-centered">
+      <div class="section-badge">Real-World Evidence</div>
+      <h2 class="section-title">7 Production Bugs Ayentra Catches</h2>
+      <p class="section-subtitle">
+        We tested Ayentra across 7 common architectures spanning financial transfers, rate limiters, thread barriers, and worker queues.
+      </p>
+    </div>
+
+    <div class="cards-grid-four">
+      <div class="difference-card">
+        <div class="metric-label">Architectures Tested</div>
+        <div class="metric-value">7 Targets</div>
+        <div class="metric-sub">Curated real-world architectures</div>
+      </div>
+      <div class="difference-card">
+        <div class="metric-label">Edge Cases Checked</div>
+        <div class="metric-value">173 Cases</div>
+        <div class="metric-sub">Boundary and extreme inputs</div>
+      </div>
+      <div class="difference-card">
+        <div class="metric-label">Bugs Caught</div>
+        <div class="metric-value" style="color: var(--accent-danger);">7 Bugs</div>
+        <div class="metric-sub">Shrunk to 2-line reproductions</div>
+      </div>
+      <div class="difference-card">
+        <div class="metric-label">Safe Fixes Verified</div>
+        <div class="metric-value" style="color: var(--accent-green);">7 Patches (100%)</div>
+        <div class="metric-sub">Zero regression sandbox pass</div>
+      </div>
+    </div>
+
+    <div class="data-table-card">
+      <div class="data-table-header">
+        <strong style="font-size: 14px;">7 Verified Production Patterns in dogfood_receipt.json</strong>
+        <span style="font-size: 12px; color: var(--accent-green); font-weight: 700;">Status: ALL 7 PATCHES SANDBOX VERIFIED</span>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Dogfood production patterns and verified fixes">
+          <thead>
+            <tr>
+              <th>Pattern</th>
+              <th>Domain &amp; Target</th>
+              <th>Plain-English Bug Prevented</th>
+              <th>Business Risk</th>
+              <th class="center-col">Verification</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>customer_pilot</code></td>
+              <td>Payment Ledger</td>
+              <td>Negative balance drift in escrow transfer</td>
+              <td style="color: var(--accent-danger); font-weight: 600;">Financial balance corruption</td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td><code>redis_token_bucket</code></td>
+              <td>Distributed Rate Limiter</td>
+              <td>Token underflow allows unbounded requests</td>
+              <td style="color: var(--accent-danger); font-weight: 600;">Rate limiter bypass / DoS</td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td><code>scheduler_race</code></td>
+              <td>Thread Task Scheduler</td>
+              <td>TOCTOU race under multi-thread barrier</td>
+              <td style="color: var(--accent-danger); font-weight: 600;">Double-allocation / thread leak</td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td><code>inventory_ledger</code></td>
+              <td>E-Commerce Inventory</td>
+              <td>Over-reservation drops total inventory count</td>
+              <td style="color: var(--accent-danger); font-weight: 600;">Negative stock overdraft</td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td><code>celery_task_queue</code></td>
+              <td>Task Pipeline Worker</td>
+              <td>Unacknowledged retries drop active task count</td>
+              <td style="color: var(--accent-danger); font-weight: 600;">Pipeline payload loss</td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td><code>requests_connection_pool</code></td>
+              <td>HTTP Client Pool</td>
+              <td>Socket exhaustion on timeout release</td>
+              <td style="color: var(--accent-danger); font-weight: 600;">Resource exhaustion</td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td><code>data_parser</code></td>
+              <td>Sensor Telemetry Stream</td>
+              <td>NaN and infinite values pass unchecked</td>
+              <td style="color: var(--accent-danger); font-weight: 600;">Telemetry data corruption</td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Speed & Accuracy Benchmarks Section -->
+  <section class="benchmark-section" id="benchmark" style="border-top: 1px solid var(--border-subtle);">
+    <div class="section-header-centered">
+      <div class="section-badge">Speed &amp; Accuracy</div>
+      <h2 class="section-title">Fixes in Under 3 Seconds</h2>
+      <p class="section-subtitle">
+        Tested on 15 real-world Python targets. Every candidate fix is replayed against the bug, checked across hundreds of edge cases, and run through your full test suite in under 3 seconds on average.
+      </p>
+    </div>
+
+    <div class="cards-grid-four">
+      <div class="difference-card">
+        <div class="metric-label">Step 1: Replay Bug</div>
+        <div class="metric-value">27.94 ms</div>
+        <div class="metric-sub">Confirms the failing input is stopped</div>
+      </div>
+      <div class="difference-card">
+        <div class="metric-label">Step 2: Edge Case Sweep</div>
+        <div class="metric-value">210.32 ms</div>
+        <div class="metric-sub">Tests hundreds of variations to prevent new bugs</div>
+      </div>
+      <div class="difference-card">
+        <div class="metric-label">Step 3: Full Test Suite</div>
+        <div class="metric-value">2,302.62 ms</div>
+        <div class="metric-sub">Existing test suite executed clean</div>
+      </div>
+      <div class="difference-card">
+        <div class="metric-label" style="color: var(--accent-green);">Average Total Time</div>
+        <div class="metric-value" style="color: var(--accent-green);">2,734.07 ms</div>
+        <div class="metric-sub">15 / 15 Targets Verified (100% Pass Rate)</div>
+      </div>
+    </div>
+
+    <!-- 8 Safety Templates Supported Badge Bar -->
+    <div class="data-table-card" style="padding: 16px 20px; margin-bottom: 24px;">
+      <div class="metric-label" style="margin-bottom: 10px;">
+        8 Built-In Python Safety Templates
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <span class="ast-pill"><code>decimal_quantize</code> Decimal &amp; precision guard</span>
+        <span class="ast-pill"><code>numeric_clamp</code> Numeric range boundary clamping</span>
+        <span class="ast-pill"><code>non_empty_str</code> String length and validation guard</span>
+        <span class="ast-pill"><code>collection_len</code> Sequence indexing &amp; empty bounds</span>
+        <span class="ast-pill"><code>dict_required_keys</code> Dictionary key existence guard</span>
+        <span class="ast-pill"><code>none_guard</code> Optional / None value guard</span>
+        <span class="ast-pill"><code>uuid_version_check</code> UUID format and version check</span>
+        <span class="ast-pill"><code>bytes_bounds</code> Byte string length and format guard</span>
+      </div>
+    </div>
+
+    <!-- 15-Target Benchmark Table -->
+    <div class="data-table-card" style="margin-bottom: 32px;">
+      <div class="data-table-header">
+        <strong style="font-size: 14px;">15 Real-World Target Benchmark Results</strong>
+        <span style="font-size: 12px; color: var(--accent-green); font-weight: 700;">Hardware: Python 3.14 (Windows amd64) | 100% Sandbox Pass</span>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table" aria-label="15-Target Repair Benchmark and Latency Matrix">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Target File</th>
+              <th>Bug Category / Safety Guard</th>
+              <th class="num-col">Bug Replay</th>
+              <th class="num-col">Edge Case Sweep</th>
+              <th class="num-col">Full Test Run</th>
+              <th class="num-col">Total Time</th>
+              <th class="center-col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><code>customer_pilot.py</code></td>
+              <td>State Invariant / Conservation Law</td>
+              <td class="num-col">8.74 ms</td>
+              <td class="num-col">275.56 ms</td>
+              <td class="num-col">2,488.94 ms</td>
+              <td class="num-col"><strong>3,521.99 ms</strong></td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><code>data_parser.py</code></td>
+              <td>Input Sanitization &amp; Finite Float</td>
+              <td class="num-col">7.29 ms</td>
+              <td class="num-col">181.01 ms</td>
+              <td class="num-col">2,659.19 ms</td>
+              <td class="num-col"><strong>3,113.94 ms</strong></td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><code>inventory_ledger.py</code></td>
+              <td>State Invariant / Conservation Law</td>
+              <td class="num-col">7.07 ms</td>
+              <td class="num-col">221.32 ms</td>
+              <td class="num-col">2,455.30 ms</td>
+              <td class="num-col"><strong>2,913.62 ms</strong></td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><code>scheduler_race.py</code></td>
+              <td>Concurrency / Thread Schedule Race</td>
+              <td class="num-col">211.34 ms</td>
+              <td class="num-col">1,124.14 ms</td>
+              <td class="num-col">2,492.73 ms</td>
+              <td class="num-col"><strong>4,355.20 ms</strong></td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><code>celery_task_queue.py</code></td>
+              <td>Task Queue Counter Underflow</td>
+              <td class="num-col">7.36 ms</td>
+              <td class="num-col">317.45 ms</td>
+              <td class="num-col">2,270.68 ms</td>
+              <td class="num-col"><strong>2,812.31 ms</strong></td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><code>redis_token_bucket.py</code></td>
+              <td>Rate Limiter Capacity Boundary</td>
+              <td class="num-col">7.64 ms</td>
+              <td class="num-col">172.47 ms</td>
+              <td class="num-col">2,279.08 ms</td>
+              <td class="num-col"><strong>2,574.18 ms</strong></td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><code>requests_connection_pool.py</code></td>
+              <td>Connection Pool Active Leaks</td>
+              <td class="num-col">8.07 ms</td>
+              <td class="num-col">15.39 ms</td>
+              <td class="num-col">2,203.35 ms</td>
+              <td class="num-col"><strong>2,270.55 ms</strong></td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><code>ratio_calc.py</code></td>
+              <td>Zero Division / Modulo Guard</td>
+              <td class="num-col">6.72 ms</td>
+              <td class="num-col">78.86 ms</td>
+              <td class="num-col">2,150.74 ms</td>
+              <td class="num-col"><strong>2,284.06 ms</strong></td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><code>sequence_reader.py</code></td>
+              <td><code>collection_len</code> Out-of-Bounds</td>
+              <td class="num-col">22.31 ms</td>
+              <td class="num-col">112.17 ms</td>
+              <td class="num-col">2,157.43 ms</td>
+              <td class="num-col"><strong>2,411.51 ms</strong></td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><code>mapping_reader.py</code></td>
+              <td><code>dict_required_keys</code> Missing Key</td>
+              <td class="num-col">23.21 ms</td>
+              <td class="num-col">163.93 ms</td>
+              <td class="num-col">2,195.83 ms</td>
+              <td class="num-col"><strong>2,499.42 ms</strong></td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td><code>profile_loader.py</code></td>
+              <td><code>none_guard</code> Optional Boundary</td>
+              <td class="num-col">21.81 ms</td>
+              <td class="num-col">98.23 ms</td>
+              <td class="num-col">2,195.37 ms</td>
+              <td class="num-col"><strong>2,395.19 ms</strong></td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td><code>financial_split.py</code></td>
+              <td><code>decimal_quantize</code> Precision Guard</td>
+              <td class="num-col">21.19 ms</td>
+              <td class="num-col">78.27 ms</td>
+              <td class="num-col">2,290.80 ms</td>
+              <td class="num-col"><strong>2,518.85 ms</strong></td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td><code>timespan_validator.py</code></td>
+              <td>Timezone Date Chronology Guard</td>
+              <td class="num-col">21.33 ms</td>
+              <td class="num-col">105.39 ms</td>
+              <td class="num-col">2,265.51 ms</td>
+              <td class="num-col"><strong>2,500.61 ms</strong></td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>14</td>
+              <td><code>packet_decoder.py</code></td>
+              <td><code>bytes_bounds</code> (bytes/bytearray)</td>
+              <td class="num-col">24.55 ms</td>
+              <td class="num-col">103.30 ms</td>
+              <td class="num-col">2,180.88 ms</td>
+              <td class="num-col"><strong>2,376.83 ms</strong></td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>15</td>
+              <td><code>session_token_validator.py</code></td>
+              <td><code>uuid_version_check</code> (uuid.UUID)</td>
+              <td class="num-col">20.49 ms</td>
+              <td class="num-col">107.35 ms</td>
+              <td class="num-col">2,253.54 ms</td>
+              <td class="num-col"><strong>2,462.85 ms</strong></td>
+              <td class="center-col"><span class="pass-badge">VERIFIED</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Security & Hash Pinning Card -->
+    <div class="terminal-card">
+      <div class="terminal-bar">
+        <div class="terminal-dots">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+        <span class="terminal-title">Enterprise Security &amp; Hash Pinning</span>
+        <span class="status-pill pill-pass">Safe for Zero-Trust CI</span>
+      </div>
+
+      <div class="terminal-body">
+        <p style="font-size: 14px; color: var(--text-code-muted); margin-bottom: 16px; font-family: var(--font-sans);">
+          For zero-trust, air-gapped CI runners and security compliance gates, Ayentra publishes verified SHA-256 package digests. Pin these hashes in requirements files to prevent supply-chain tampering.
+        </p>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+          <span style="font-size: 12px; font-weight: 600; color: var(--text-code);">requirements-security.txt (Hash-Pinned Installation)</span>
+          <button type="button" class="quickstart-copy-btn" data-copy-target="supply_chain_req" title="Copy hash-pinned requirements snippet">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy Snippet</span>
+          </button>
+        </div>
+
+        <pre class="quickstart-code-pre" style="background: var(--bg-code-surface); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-dark); margin-bottom: 16px;"><code id="code-supply-chain-req"><span class="syn-comment"># Ayentra v0.1.0 Cryptographically Pinned Distribution</span>
+ayentra==0.1.0 \
+  --hash=sha256:c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 \
+  --hash=sha256:2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c</code></pre>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+          <span style="font-size: 12px; font-weight: 600; color: var(--text-code);">Air-Gapped / Zero-Egress CI Installation Command</span>
+          <button type="button" class="quickstart-copy-btn" data-copy-target="supply_chain_cmd" title="Copy pip command">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy Command</span>
+          </button>
+        </div>
+
+        <pre class="quickstart-code-pre" style="background: var(--bg-code-surface); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-dark);"><code id="code-supply-chain-cmd">$ pip install --require-hashes -r requirements-security.txt</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- SBOM & Security Section -->
+  <section class="sbom-section" id="sbom" style="border-top: 1px solid var(--border-subtle);">
+    <div class="section-header-centered">
+      <div class="section-badge">Security &amp; Open Source Trust</div>
+      <h2 class="section-title">Built for Secure, Private Environments</h2>
+      <p class="section-subtitle">
+        Standard CycloneDX 1.5 JSON manifest, verified wheel packages, zero external telemetry, and offline-first execution.
+      </p>
+    </div>
+
+    <div class="cards-grid-four">
+      <div class="difference-card">
+        <div class="metric-label">Package Checksums</div>
+        <div class="metric-value">2 Releases</div>
+        <div class="metric-sub">Wheel: 108,791 B | Sdist: 143,855 B</div>
+      </div>
+      <div class="difference-card">
+        <div class="metric-label">Automated Tests</div>
+        <div class="metric-value">128 / 128 PASS</div>
+        <div class="metric-sub">100% automated test pass rate</div>
+      </div>
+      <div class="difference-card">
+        <div class="metric-label">Runtime Dependencies</div>
+        <div class="metric-value">3 Packages</div>
+        <div class="metric-sub">hypothesis, pytest, rich (Pure Python)</div>
+      </div>
+      <div class="difference-card">
+        <div class="metric-label" style="color: var(--accent-green);">Network Access</div>
+        <div class="metric-value" style="color: var(--accent-green);">Zero Egress</div>
+        <div class="metric-sub">100% offline, no telemetry or phone-home</div>
+      </div>
+    </div>
+
+    <!-- Interactive SBOM Inspection Panel -->
+    <div class="quickstart-card">
+      <div class="quickstart-nav">
+        <div class="quickstart-tabs" role="tablist" aria-label="SBOM and Provenance Inspection Tabs">
+          <button type="button" class="quickstart-tab sbom-tab active" data-sbom-tab="airgapped" role="tab" aria-selected="true" id="tab-sbom-airgapped">
+            <span class="quickstart-tab-icon">&#128274;</span>
+            <span>Air-Gapped Pinning</span>
+          </button>
+          <button type="button" class="quickstart-tab sbom-tab" data-sbom-tab="cyclonedx" role="tab" aria-selected="false" id="tab-sbom-cyclonedx">
+            <span class="quickstart-tab-icon">&#128203;</span>
+            <span>CycloneDX 1.5 JSON</span>
+          </button>
+          <button type="button" class="quickstart-tab sbom-tab" data-sbom-tab="inventory" role="tab" aria-selected="false" id="tab-sbom-inventory">
+            <span class="quickstart-tab-icon">&#128230;</span>
+            <span>Package File Inventory (20 Files)</span>
+          </button>
+          <button type="button" class="quickstart-tab sbom-tab" data-sbom-tab="deps" role="tab" aria-selected="false" id="tab-sbom-deps">
+            <span class="quickstart-tab-icon">&#128737;</span>
+            <span>Minimal Dependencies</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 1: Air-Gapped Installation -->
+      <div class="quickstart-panel sbom-panel active" id="sbom-panel-airgapped" role="tabpanel">
+        <div class="terminal-bar">
+          <div class="terminal-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span class="terminal-title">requirements-security.txt (Air-Gapped Cryptographic Pinning)</span>
+          <button type="button" class="quickstart-copy-btn" data-copy-target="sbom_req" title="Copy pinned requirements">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy Snippet</span>
+          </button>
+        </div>
+        <div class="quickstart-terminal-body">
+          <pre class="quickstart-code"><code id="code-sbom-req"><span class="syn-comment"># Ayentra v0.1.0 Cryptographically Pinned Distribution</span>
+ayentra==0.1.0 \
+  --hash=sha256:c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 \
+  --hash=sha256:2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c</code></pre>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-code);">Direct Air-Gapped Wheel Check &amp; Local Install</span>
+            <button type="button" class="quickstart-copy-btn" data-copy-target="sbom_wheel_cmd" title="Copy wheel check command">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span>Copy Command</span>
+            </button>
+          </div>
+          <pre class="quickstart-code"><code id="code-sbom-wheel-cmd">$ echo "c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 *dist/ayentra-0.1.0-py3-none-any.whl" | sha256sum -c -
+$ pip install dist/ayentra-0.1.0-py3-none-any.whl --no-index --find-links=dist/</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 2: CycloneDX 1.5 JSON Manifest -->
+      <div class="quickstart-panel sbom-panel" id="sbom-panel-cyclonedx" role="tabpanel" style="display: none;">
+        <div class="terminal-bar">
+          <div class="terminal-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span class="terminal-title">cyclonedx-bom-1.5.json (Machine-Readable SBOM)</span>
+          <button type="button" class="quickstart-copy-btn" data-copy-target="sbom_cyclonedx_json" title="Copy CycloneDX JSON">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy CycloneDX JSON</span>
+          </button>
+        </div>
+        <div class="quickstart-terminal-body">
+          <pre class="quickstart-code"><code id="code-sbom-cyclonedx">{
+  <span class="syn-key">"$schema"</span>: <span class="syn-str">"http://cyclonedx.org/schema/bom-1.5.json"</span>,
+  <span class="syn-key">"bomFormat"</span>: <span class="syn-str">"CycloneDX"</span>,
+  <span class="syn-key">"specVersion"</span>: <span class="syn-str">"1.5"</span>,
+  <span class="syn-key">"serialNumber"</span>: <span class="syn-str">"urn:uuid:6d538e14-2c67-4a0b-9877-3e58a2d10b74"</span>,
+  <span class="syn-key">"version"</span>: <span class="syn-num">1</span>,
+  <span class="syn-key">"metadata"</span>: {
+    <span class="syn-key">"timestamp"</span>: <span class="syn-str">"2026-11-03T14:20:00Z"</span>,
+    <span class="syn-key">"component"</span>: {
+      <span class="syn-key">"bom-ref"</span>: <span class="syn-str">"pkg:pypi/ayentra@0.1.0"</span>,
+      <span class="syn-key">"type"</span>: <span class="syn-str">"application"</span>,
+      <span class="syn-key">"name"</span>: <span class="syn-str">"ayentra"</span>,
+      <span class="syn-key">"version"</span>: <span class="syn-str">"0.1.0"</span>,
+      <span class="syn-key">"licenses"</span>: [{<span class="syn-key">"license"</span>: {<span class="syn-key">"id"</span>: <span class="syn-str">"MIT"</span>}}],
+      <span class="syn-key">"hashes"</span>: [
+        {<span class="syn-key">"alg"</span>: <span class="syn-str">"SHA-256"</span>, <span class="syn-key">"content"</span>: <span class="syn-str">"c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73"</span>}
+      ]
+    }
+  },
+  <span class="syn-key">"components"</span>: [
+    {<span class="syn-key">"name"</span>: <span class="syn-str">"hypothesis"</span>, <span class="syn-key">"version"</span>: <span class="syn-str">"6.170.14"</span>, <span class="syn-key">"scope"</span>: <span class="syn-str">"required"</span>, <span class="syn-key">"licenses"</span>: [{<span class="syn-key">"license"</span>: {<span class="syn-key">"id"</span>: <span class="syn-str">"MPL-2.0"</span>}}]},
+    {<span class="syn-key">"name"</span>: <span class="syn-str">"rich"</span>, <span class="syn-key">"version"</span>: <span class="syn-str">"15.0.0"</span>, <span class="syn-key">"scope"</span>: <span class="syn-str">"required"</span>, <span class="syn-key">"licenses"</span>: [{<span class="syn-key">"license"</span>: {<span class="syn-key">"id"</span>: <span class="syn-str">"MIT"</span>}}]},
+    {<span class="syn-key">"name"</span>: <span class="syn-str">"pytest"</span>, <span class="syn-key">"version"</span>: <span class="syn-str">"9.0.3"</span>, <span class="syn-key">"scope"</span>: <span class="syn-str">"required"</span>, <span class="syn-key">"licenses"</span>: [{<span class="syn-key">"license"</span>: {<span class="syn-key">"id"</span>: <span class="syn-str">"MIT"</span>}}]},
+    {<span class="syn-key">"name"</span>: <span class="syn-str">"sortedcontainers"</span>, <span class="syn-key">"version"</span>: <span class="syn-str">"2.4.0"</span>, <span class="syn-key">"scope"</span>: <span class="syn-str">"required"</span>, <span class="syn-key">"licenses"</span>: [{<span class="syn-key">"license"</span>: {<span class="syn-key">"id"</span>: <span class="syn-str">"Apache-2.0"</span>}}]}
+  ]
+}</code></pre>
+        </div>
+      </div>
+
+      <!-- Tab 3: Bundled Wheel File Inventory -->
+      <div class="quickstart-panel sbom-panel" id="sbom-panel-inventory" role="tabpanel" style="display: none;">
+        <div class="terminal-bar">
+          <div class="terminal-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span class="terminal-title">ayentra-0.1.0-py3-none-any.whl Bundled File Inventory (20 Entries)</span>
+          <span class="status-pill pill-pass">108,791 Bytes Verified</span>
+        </div>
+        <div class="quickstart-terminal-body">
+          <div class="table-scroll">
+            <table class="data-table" style="color: var(--text-code);" aria-label="Bundled Wheel File Inventory">
+              <thead>
+                <tr>
+                  <th style="background: var(--bg-code-surface); color: var(--text-code-muted); border-color: var(--border-dark);">Bundled File Path</th>
+                  <th class="num-col" style="background: var(--bg-code-surface); color: var(--text-code-muted); border-color: var(--border-dark);">Size</th>
+                  <th style="background: var(--bg-code-surface); color: var(--text-code-muted); border-color: var(--border-dark);">SHA-256 Digest</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/__init__.py</code></td><td class="num-col" style="border-color: var(--border-dark);">1,129 B</td><td style="border-color: var(--border-dark);">84b2974fd332e4a04eecc5fcfb47dd9505ab6748c4406a902ed2f7443b393059</td></tr>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/ast_analyzer.py</code></td><td class="num-col" style="border-color: var(--border-dark);">18,458 B</td><td style="border-color: var(--border-dark);">c9a9b3f608c5e6c695ffec377928e1db74dbf923614608c6717737d9a3f5dd12</td></tr>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/cli.py</code></td><td class="num-col" style="border-color: var(--border-dark);">74,339 B</td><td style="border-color: var(--border-dark);">861bb5490db0d5bedff860ba45604e494fba15f2c98d5161dcc3bfb02d737ac1</td></tr>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/concurrency.py</code></td><td class="num-col" style="border-color: var(--border-dark);">12,100 B</td><td style="border-color: var(--border-dark);">4a5965c319093d04d75e3086b6244cf6ee33642765523ec3ff0fde79852134fe</td></tr>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/contracts.py</code></td><td class="num-col" style="border-color: var(--border-dark);">4,566 B</td><td style="border-color: var(--border-dark);">8dca4e5f13f9bb7ff706059cf5edcd37b37841b706664922e55d1a8a592e9640</td></tr>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/dogfood.py</code></td><td class="num-col" style="border-color: var(--border-dark);">10,746 B</td><td style="border-color: var(--border-dark);">7d8181b497b81af546a52fde98709c20cbf2053a6486cb41701596935e70d5b0</td></tr>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/engine.py</code></td><td class="num-col" style="border-color: var(--border-dark);">33,952 B</td><td style="border-color: var(--border-dark);">73b14f6e69edb02f6e2d11ac051d701c3ae607f357d38bdbe7dd6d63e8c4eff8</td></tr>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/py.typed</code></td><td class="num-col" style="border-color: var(--border-dark);">0 B</td><td style="border-color: var(--border-dark);">e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</td></tr>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/regression.py</code></td><td class="num-col" style="border-color: var(--border-dark);">2,743 B</td><td style="border-color: var(--border-dark);">25b048e31df36bffbb26ce20452b9df81b514d3524294f765744c224da70c4a1</td></tr>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/repair.py</code></td><td class="num-col" style="border-color: var(--border-dark);">44,829 B</td><td style="border-color: var(--border-dark);">b00fa3711e953350c9f73c4ac201d403310a770c3a04d2a2f3a2e2d44bff54f8</td></tr>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/report.py</code></td><td class="num-col" style="border-color: var(--border-dark);">10,966 B</td><td style="border-color: var(--border-dark);">76adfd3be16c777155f7c1cecde3d9c883cb3fefa1e2bee955747a5be3a47fb3</td></tr>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/sarif.py</code></td><td class="num-col" style="border-color: var(--border-dark);">5,135 B</td><td style="border-color: var(--border-dark);">12291879e9be7d22e9232a31cc71a37a2b0f788a0bca455ab48368d820197f81</td></tr>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/studio.py</code></td><td class="num-col" style="border-color: var(--border-dark);">106,066 B</td><td style="border-color: var(--border-dark);">fc5460d7bef0a195fc7401240bc0f7c26ba10c17cc98942011d502f0d2d86088</td></tr>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/site/app.js</code></td><td class="num-col" style="border-color: var(--border-dark);">39,975 B</td><td style="border-color: var(--border-dark);">cc925980fdfdd72ad1e4c5980980406ba0deff3dd42f751b59e27e2739fc02e1</td></tr>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/site/index.html</code></td><td class="num-col" style="border-color: var(--border-dark);">90,773 B</td><td style="border-color: var(--border-dark);">3ac8f94d5cf9ec1f49b1431ba987c202b3f71e9e25beeaa3e435c188987facfb</td></tr>
+                <tr><td style="border-color: var(--border-dark);"><code>ayentra/site/styles.css</code></td><td class="num-col" style="border-color: var(--border-dark);">31,289 B</td><td style="border-color: var(--border-dark);">98308ca47329b381301a70b31af6965baac94eeec5208ecfcf6b080ace8b89cc</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Runtime Dependencies & Isolation Boundaries -->
+      <div class="quickstart-panel sbom-panel" id="sbom-panel-deps" role="tabpanel" style="display: none;">
+        <div class="terminal-bar">
+          <div class="terminal-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span class="terminal-title">Minimal Runtime Dependencies &amp; Isolation Boundaries</span>
+          <span class="status-pill pill-pass">Zero External Sockets</span>
+        </div>
+        <div class="quickstart-terminal-body">
+          <ul style="padding-left: 20px; font-size: 14px; color: var(--text-code); line-height: 1.7; font-family: var(--font-sans);">
+            <li><strong>hypothesis (&gt;=6.0.0, MPL-2.0):</strong> Deterministic test input generator and bug shrinking.</li>
+            <li><strong>rich (&gt;=13.0.0, MIT):</strong> Clean terminal output, diagnostic reports, and color syntax highlighting.</li>
+            <li><strong>pytest (&gt;=7.0.0, MIT):</strong> Isolated regression test runner for safe sandbox patch testing.</li>
+            <li><strong>Zero C-extensions:</strong> Pure Python package (<code>py3-none-any</code>) with zero telemetry and zero outbound network calls.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Studio Callout -->
+  <section class="studio-callout-section" id="studio">
+    <div class="studio-card">
+      <div class="studio-info">
+        <div class="section-badge">Local Web Studio</div>
+        <h3>Prefer a visual workspace in your browser?</h3>
+        <p>
+          Ayentra Studio provides a local interface to inspect bugs, preview code diffs side-by-side, and test fixes with keyboard shortcuts.
+        </p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;">
+        <div class="cli-badge-group" data-cmd="ayentra studio --port 8420" title="Click to copy studio command">
+          <code class="cli-badge-code"><span>$ </span>ayentra studio --port 8420</code>
+          <button type="button" class="cli-copy-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        <span style="font-size: 12px; color: var(--text-muted);">Opens http://localhost:8420 in your default browser</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <strong style="color: var(--text-primary); font-size: 14px;">Ayentra</strong>
+          <span>Catch Python edge cases before merge</span>
+        </div>
+        <div style="font-size: 12px; color: var(--text-muted);">
+          Contact: <a href="mailto:ayentra.ai@gmail.com" style="color: var(--accent-terracotta); text-decoration: none;">ayentra.ai@gmail.com</a>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <a href="#demo" class="footer-link">Interactive Demo</a>
+        <a href="#how-it-works" class="footer-link">How It Works</a>
+        <a href="#quickstart" class="footer-link">Quickstart &amp; CLI</a>
+        <a href="#benchmark" class="footer-link">Benchmarks</a>
+        <a href="#sbom" class="footer-link">SBOM &amp; Security</a>
+        <button type="button" class="footer-modal-link" onclick="openLegalModal('privacy')">Privacy Policy</button>
+        <button type="button" class="footer-modal-link" onclick="openLegalModal('terms')">Terms of Service</button>
+        <button type="button" class="footer-modal-link" onclick="openLegalModal('cookies')">Cookie Notice</button>
+      </div>
+
+      <div style="font-size: 13px;">
+        <span>Ayentra. All rights reserved.</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Cookie Consent Banner -->
+  <div class="cookie-banner" id="cookie-banner" role="dialog" aria-live="polite" aria-label="Privacy and cookies" style="display: none;">
+    <div class="cookie-content">
+      <span>Ayentra runs 100% offline with zero external tracking cookies. We only store your local UI preferences in your browser.</span>
+      <div class="cookie-actions">
+        <button type="button" class="btn-primary" onclick="acceptCookies()" style="padding: 6px 14px; font-size: 12px;">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- In-Page Modals (Privacy, Terms, Cookies, Pilot) -->
+  <div class="modal-backdrop" id="site-modal" role="dialog" aria-modal="true" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title">Legal Notice</h3>
+        <button type="button" class="modal-close-btn" onclick="closeSiteModal()" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- Content injected dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeSiteModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+name: Ayentra Self-Healing Gate
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  verify:
+    name: Verify Invariants & Race Conditions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Ayentra Verification Gate
+        id: ayentra
+        uses: ./
+        with:
+          target: 'examples/'
+          seed: '42'
+          json-out: 'ayentra-receipt.json'
+          sarif-out: 'ayentra.sarif'
+          pr-comment-out: 'ayentra-pr-comment.md'
+          step-summary: 'true'
+
+      - name: Upload Verification Receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ayentra-verification-receipt
+          path: ayentra-receipt.json
+
+      - name: Upload PR Comment Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ayentra-pr-comment
+          path: ayentra-pr-comment.md
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ayentra.sarif

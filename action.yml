@@ -1,0 +1,134 @@
+name: 'Ayentra Invariant Verification Gate'
+description: 'Catches concurrency race conditions and logic invariant violations with property-based shrinking and sandbox auto-patch verification.'
+author: 'Ayentra'
+
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  target:
+    description: 'Path to target Python file or directory to verify'
+    required: false
+    default: '.'
+  seed:
+    description: 'Deterministic seed for reproducible property tests'
+    required: false
+    default: '42'
+  max-examples:
+    description: 'Maximum property examples per target callable'
+    required: false
+    default: '120'
+  json-out:
+    description: 'Path to export deterministic VerificationReport JSON receipt'
+    required: false
+    default: 'ayentra-receipt.json'
+  sarif-out:
+    description: 'Path to export SARIF 2.1.0 report for GitHub Advanced Security'
+    required: false
+    default: ''
+  pr-comment-out:
+    description: 'Path to export GitHub PR review comment Markdown document'
+    required: false
+    default: ''
+  step-summary:
+    description: 'Whether to write rich verification summary table to GITHUB_STEP_SUMMARY'
+    required: false
+    default: 'true'
+  post-pr-comment:
+    description: 'Whether to post or update the PR review comment in GitHub pull request workflows'
+    required: false
+    default: 'false'
+  python-version:
+    description: 'Python version to use'
+    required: false
+    default: '3.11'
+
+outputs:
+  receipt-path:
+    description: 'Path to the generated JSON verification receipt'
+    value: ${{ inputs.json-out }}
+  sarif-path:
+    description: 'Path to the generated SARIF report'
+    value: ${{ inputs.sarif-out }}
+  pr-comment-path:
+    description: 'Path to the generated PR review comment Markdown'
+    value: ${{ inputs.pr-comment-out }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install Ayentra
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install "${{ github.action_path }}"
+
+    - name: Run Ayentra Verification Gate
+      shell: bash
+      env:
+        TARGET: ${{ inputs.target }}
+        SEED: ${{ inputs.seed }}
+        MAX_EXAMPLES: ${{ inputs.max-examples }}
+        JSON_OUT: ${{ inputs.json-out }}
+        SARIF_OUT: ${{ inputs.sarif-out }}
+        PR_COMMENT_OUT: ${{ inputs.pr-comment-out }}
+        POST_PR_COMMENT: ${{ inputs.post-pr-comment }}
+        STEP_SUMMARY: ${{ inputs.step-summary }}
+      run: |
+        args=("check" "$TARGET" "--seed" "$SEED" "--max-examples" "$MAX_EXAMPLES" "--json-out" "$JSON_OUT")
+        if [ -n "$SARIF_OUT" ]; then
+          args+=("--sarif" "$SARIF_OUT")
+        fi
+        PR_OUT="$PR_COMMENT_OUT"
+        # Safe fallback when pr-comment-out is omitted but post-pr-comment is true: [ -z "$PR_OUT" ] && [ "${{ inputs.post-pr-comment }}" = "true" ]
+        if [ -z "$PR_OUT" ] && [ "$POST_PR_COMMENT" = "true" ]; then
+          PR_OUT="ayentra-pr-comment.md"
+        fi
+        if [ -n "$PR_OUT" ]; then
+          args+=("--pr-comment" "$PR_OUT")
+        fi
+        if [ "$STEP_SUMMARY" = "true" ]; then
+          args+=("--step-summary")
+        fi
+        ayentra "${args[@]}"
+
+    - name: Post PR Review Comment
+      if: ${{ inputs.post-pr-comment == 'true' && github.event_name == 'pull_request' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_COMMENT_PATH: ${{ inputs.pr-comment-out }}
+        REPO_NAME: ${{ github.repository }}
+      run: |
+        COMMENT_FILE="${PR_COMMENT_PATH:-ayentra-pr-comment.md}"
+        if [ -f "$COMMENT_FILE" ] && [ -n "$PR_NUMBER" ]; then
+          if command -v gh >/dev/null 2>&1; then
+            gh pr comment "$PR_NUMBER" --body-file "$COMMENT_FILE" --edit-last || gh pr comment "$PR_NUMBER" --body-file "$COMMENT_FILE"
+          else
+            python -c "
+import os, urllib.request, json
+token = os.environ.get('GITHUB_TOKEN') or os.environ.get('GH_TOKEN')
+repo = os.environ.get('REPO_NAME') or os.environ.get('GITHUB_REPOSITORY')
+pr_num = os.environ.get('PR_NUMBER')
+comment_file = os.environ.get('COMMENT_FILE')
+if token and repo and pr_num and comment_file and os.path.isfile(comment_file):
+    body = open(comment_file, 'r', encoding='utf-8').read()
+    url = f'https://api.github.com/repos/{repo}/issues/{pr_num}/comments'
+    req = urllib.request.Request(
+        url,
+        data=json.dumps({'body': body}).encode('utf-8'),
+        headers={'Authorization': f'token {token}', 'Accept': 'application/vnd.github.v3+json'},
+        method='POST',
+    )
+    urllib.request.urlopen(req)
+"
+          fi
+        fi
