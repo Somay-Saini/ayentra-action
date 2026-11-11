@@ -86,7 +86,6 @@ runs:
           args+=("--sarif" "$SARIF_OUT")
         fi
         PR_OUT="$PR_COMMENT_OUT"
-        # Safe fallback when pr-comment-out is omitted but post-pr-comment is true: [ -z "$PR_OUT" ] && [ "${{ inputs.post-pr-comment }}" = "true" ]
         if [ -z "$PR_OUT" ] && [ "$POST_PR_COMMENT" = "true" ]; then
           PR_OUT="ayentra-pr-comment.md"
         fi
@@ -113,22 +112,6 @@ runs:
           if command -v gh >/dev/null 2>&1; then
             gh pr comment "$PR_NUMBER" --body-file "$COMMENT_FILE" --edit-last || gh pr comment "$PR_NUMBER" --body-file "$COMMENT_FILE"
           else
-            python -c "
-import os, urllib.request, json
-token = os.environ.get('GITHUB_TOKEN') or os.environ.get('GH_TOKEN')
-repo = os.environ.get('REPO_NAME') or os.environ.get('GITHUB_REPOSITORY')
-pr_num = os.environ.get('PR_NUMBER')
-comment_file = os.environ.get('COMMENT_FILE')
-if token and repo and pr_num and comment_file and os.path.isfile(comment_file):
-    body = open(comment_file, 'r', encoding='utf-8').read()
-    url = f'https://api.github.com/repos/{repo}/issues/{pr_num}/comments'
-    req = urllib.request.Request(
-        url,
-        data=json.dumps({'body': body}).encode('utf-8'),
-        headers={'Authorization': f'token {token}', 'Accept': 'application/vnd.github.v3+json'},
-        method='POST',
-    )
-    urllib.request.urlopen(req)
-"
+            python3 -c "import os, urllib.request, json; token = os.environ.get('GITHUB_TOKEN') or os.environ.get('GH_TOKEN'); repo = os.environ.get('REPO_NAME') or os.environ.get('GITHUB_REPOSITORY'); pr_num = os.environ.get('PR_NUMBER'); comment_file = os.environ.get('COMMENT_FILE'); body = open(comment_file, 'r', encoding='utf-8').read() if (token and repo and pr_num and comment_file and os.path.isfile(comment_file)) else None; req = urllib.request.Request(f'https://api.github.com/repos/{repo}/issues/{pr_num}/comments', data=json.dumps({'body': body}).encode('utf-8'), headers={'Authorization': f'token {token}', 'Accept': 'application/vnd.github.v3+json'}, method='POST') if body else None; urllib.request.urlopen(req) if req else None"
           fi
         fi

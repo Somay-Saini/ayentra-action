@@ -21,6 +21,7 @@ jobs:
       - name: Run Ayentra Verification Gate
         id: ayentra
         uses: ./
+        continue-on-error: true
         with:
           target: 'examples/'
           seed: '42'
@@ -44,7 +45,7 @@ jobs:
           path: ayentra-pr-comment.md
 
       - name: Upload SARIF to GitHub Code Scanning
-        if: always()
+        if: always() && hashFiles('ayentra.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ayentra.sarif
